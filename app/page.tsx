@@ -156,7 +156,7 @@ export default function Home() {
       {/* Main content */}
       <div className="flex flex-1 overflow-hidden">
         {/* Map */}
-        <div className="flex-1 relative">
+        <div className="flex-1 relative isolate">
           {!selectedRoute ? (
             <div className="flex h-full items-center justify-center text-muted-foreground">
               Select a route to see bus locations

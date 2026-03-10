@@ -121,7 +121,7 @@ export default function BusMap({
     <MapContainer
       center={OAKVILLE_CENTER}
       zoom={13}
-      className="h-full w-full rounded-lg"
+      className="h-full w-full"
       style={{ minHeight: "400px" }}
     >
       <TileLayer
