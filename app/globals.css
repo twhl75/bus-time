@@ -127,3 +127,14 @@
     @apply font-sans;
   }
 }
+
+/* Leaflet overrides */
+.bus-marker,
+.stop-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 0.5rem;
+}
