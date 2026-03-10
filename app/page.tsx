@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { RouteSelector } from "@/components/route-selector";
 import { BusList } from "@/components/bus-list";
 import { StopPredictions } from "@/components/stop-predictions";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import type { Bus, RouteInfo, StopInfo, BusStop } from "@/lib/types";
 
@@ -129,6 +130,7 @@ export default function Home() {
             >
               Auto {autoRefresh ? "ON" : "OFF"}
             </Button>
+            <ThemeToggle />
             {lastUpdated && (
               <span className="text-xs text-muted-foreground whitespace-nowrap">
                 Updated {lastUpdated.toLocaleTimeString()}

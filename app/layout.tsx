@@ -2,6 +2,17 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
+const themeInitScript = `(() => {
+  const storageKey = "theme-preference";
+  const root = document.documentElement;
+  const stored = localStorage.getItem(storageKey);
+  const theme = stored === "light" || stored === "dark" || stored === "system" ? stored : "system";
+  const media = window.matchMedia("(prefers-color-scheme: dark)");
+  const isDark = theme === "dark" || (theme === "system" && media.matches);
+  root.classList.toggle("dark", isDark);
+  root.style.colorScheme = isDark ? "dark" : "light";
+})();`;
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -23,7 +34,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

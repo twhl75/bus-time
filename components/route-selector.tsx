@@ -22,7 +22,7 @@ export function RouteSelector({
 }: RouteSelectorProps) {
   return (
     <Select value={value} onValueChange={(v) => v && onValueChange(v)} disabled={disabled}>
-      <SelectTrigger className="w-[260px]">
+      <SelectTrigger className="w-[24rem] max-w-[90vw]">
         <SelectValue placeholder="Select a route" />
       </SelectTrigger>
       <SelectContent>
