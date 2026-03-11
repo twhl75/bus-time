@@ -105,7 +105,7 @@ export default function Home() {
     <div className="flex h-screen flex-col">
       {/* Header */}
       <header className="border-b bg-card px-4 py-3">
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
           <h1 className="text-lg font-semibold whitespace-nowrap">
             🚌 Oakville Bus Tracker
           </h1>
@@ -114,7 +114,7 @@ export default function Home() {
             onValueChange={handleRouteChange}
             disabled={loading}
           />
-          <div className="flex items-center gap-2 ml-auto">
+          <div className="flex w-full flex-wrap items-center gap-2 sm:ml-auto sm:w-auto sm:justify-end">
             <Button
               variant="outline"
               size="sm"
@@ -132,14 +132,14 @@ export default function Home() {
             </Button>
             <ThemeToggle />
             {lastUpdated && (
-              <span className="text-xs text-muted-foreground whitespace-nowrap">
+              <span className="w-full text-xs text-muted-foreground sm:ml-1 sm:w-auto sm:whitespace-nowrap">
                 Updated {lastUpdated.toLocaleTimeString()}
               </span>
             )}
           </div>
         </div>
         {routeInfo && (
-          <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
             <span
               className="inline-block h-3 w-3 rounded-full"
               style={{ backgroundColor: routeInfo.color }}

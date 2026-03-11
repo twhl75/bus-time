@@ -14,7 +14,7 @@ type ThemeMode = "light" | "dark" | "system";
 const STORAGE_KEY = "theme-preference";
 
 const THEME_META = {
-  system: { label: "Auto", Icon: Eclipse },
+  system: { label: "System", Icon: Eclipse },
   light: { label: "Light", Icon: Sun },
   dark: { label: "Dark", Icon: Moon },
 } as const;
@@ -78,7 +78,7 @@ export function ThemeToggle() {
       <SelectContent align="end" className="min-w-0">
         <SelectItem value="system">
           <Eclipse className="size-4" />
-          Auto
+          System
         </SelectItem>
         <SelectItem value="light">
           <Sun className="size-4" />

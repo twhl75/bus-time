@@ -25,10 +25,10 @@ export function StopPredictions({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="max-h-[50vh]">
-        <SheetHeader>
+        <SheetHeader className="pb-2 pr-12">
           <SheetTitle>{stop?.name ?? "Stop Predictions"}</SheetTitle>
         </SheetHeader>
-        <div className="overflow-y-auto py-4">
+        <div className="overflow-y-auto px-4 pb-6 pt-1">
           {loading ? (
             <div className="flex items-center justify-center py-8 text-muted-foreground">
               Loading predictions...
@@ -42,7 +42,7 @@ export function StopPredictions({
               {stop.predictions.map((pred, i) => (
                 <div
                   key={`${pred.vehicleId}-${i}`}
-                  className="flex items-center justify-between rounded-lg border p-3"
+                  className="flex items-center justify-between gap-3 rounded-lg border p-4"
                 >
                   <div className="space-y-1">
                     <div className="font-medium">{pred.destination}</div>
