@@ -2,6 +2,9 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import dynamic from "next/dynamic";
+import Image from "next/image";
+import logoDark from "@/assets/logo-dark.png";
+import logoLight from "@/assets/logo-light.png";
 import { RouteSelector } from "@/components/route-selector";
 import { BusList } from "@/components/bus-list";
 import { StopPredictions } from "@/components/stop-predictions";
@@ -106,8 +109,26 @@ export default function Home() {
       {/* Header */}
       <header className="border-b bg-card px-4 py-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-          <h1 className="text-lg font-semibold whitespace-nowrap">
-            🚌 Oakville Bus Tracker
+          <h1 className="flex items-center gap-2 text-lg font-semibold whitespace-nowrap">
+            <span className="relative size-7 shrink-0" aria-hidden="true">
+              <Image
+                src={logoLight}
+                alt=""
+                fill
+                priority
+                sizes="28px"
+                className="object-contain dark:hidden"
+              />
+              <Image
+                src={logoDark}
+                alt=""
+                fill
+                priority
+                sizes="28px"
+                className="hidden object-contain dark:block"
+              />
+            </span>
+            Oakville Bus Tracker
           </h1>
           <RouteSelector
             value={selectedRoute}

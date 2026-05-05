@@ -5,12 +5,36 @@ import "./globals.css";
 const themeInitScript = `(() => {
   const storageKey = "theme-preference";
   const root = document.documentElement;
+  const syncFavicons = (theme) => {
+    const darkFavicon = document.querySelector('link[rel="icon"][data-app-favicon="dark"]');
+    const lightFavicon = document.querySelector('link[rel="icon"][data-app-favicon="light"]');
+
+    if (!darkFavicon || !lightFavicon) {
+      return;
+    }
+
+    if (theme === "dark") {
+      darkFavicon.media = "all";
+      lightFavicon.media = "not all";
+      return;
+    }
+
+    if (theme === "light") {
+      darkFavicon.media = "not all";
+      lightFavicon.media = "all";
+      return;
+    }
+
+    darkFavicon.media = "(prefers-color-scheme: dark)";
+    lightFavicon.media = "(prefers-color-scheme: light)";
+  };
   const stored = localStorage.getItem(storageKey);
   const theme = stored === "light" || stored === "dark" || stored === "system" ? stored : "system";
   const media = window.matchMedia("(prefers-color-scheme: dark)");
   const isDark = theme === "dark" || (theme === "system" && media.matches);
   root.classList.toggle("dark", isDark);
   root.style.colorScheme = isDark ? "dark" : "light";
+  syncFavicons(theme);
 })();`;
 
 const geistSans = Geist({
@@ -36,6 +60,20 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link
+          rel="icon"
+          href="/favicon-light.ico"
+          type="image/x-icon"
+          media="(prefers-color-scheme: light)"
+          data-app-favicon="light"
+        />
+        <link
+          rel="icon"
+          href="/favicon-dark.ico"
+          type="image/x-icon"
+          media="(prefers-color-scheme: dark)"
+          data-app-favicon="dark"
+        />
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body
