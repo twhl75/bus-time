@@ -125,13 +125,22 @@
   }
 }
 
-/* Leaflet overrides */
-.bus-marker,
-.stop-marker {
-  background: transparent !important;
-  border: none !important;
+/* MapLibre overrides */
+.bus-marker {
+  align-items: center;
+  border: 2px solid white;
+  border-radius: 9999px;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 30%);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  font-size: 14px;
+  font-weight: 700;
+  height: 28px;
+  justify-content: center;
+  width: 28px;
 }
 
-.leaflet-popup-content-wrapper {
+.maplibregl-popup-content {
   border-radius: 0.5rem;
 }
