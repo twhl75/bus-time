@@ -1,19 +1,22 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import maplibregl, {
   GeoJSONSource,
   LngLatBounds,
   Map as MapLibreMap,
   Marker,
 } from "maplibre-gl";
+import type { StyleSpecification } from "maplibre-gl";
 import type { FeatureCollection, LineString, Point } from "geojson";
 import type { Bus, RouteInfo, BusStop } from "@/lib/types";
 
 import "maplibre-gl/dist/maplibre-gl.css";
 
-const OPENFREEMAP_POSITRON_STYLE =
-  "https://tiles.openfreemap.org/styles/positron";
+const OPENFREEMAP_STYLE_BY_THEME = {
+  light: "https://tiles.openfreemap.org/styles/positron",
+  dark: "https://tiles.openfreemap.org/styles/dark",
+} as const;
 const OAKVILLE_CENTER: [number, number] = [-79.68, 43.45];
 const DEFAULT_ROUTE_COLOR = "#333";
 const ROUTE_SOURCE_ID = "route-patterns";
@@ -22,6 +25,17 @@ const STOPS_SOURCE_ID = "route-stops";
 const STOPS_LAYER_ID = "route-stops-circle";
 const BUS_PULSE_SOURCE_ID = "bus-pulses";
 const BUS_PULSE_LAYER_ID = "bus-pulses-circle";
+const THEME_STORAGE_KEY = "theme-preference";
+const APP_SOURCE_IDS = [
+  ROUTE_SOURCE_ID,
+  STOPS_SOURCE_ID,
+  BUS_PULSE_SOURCE_ID,
+] as const;
+const APP_LAYER_IDS = [
+  ROUTE_LAYER_ID,
+  STOPS_LAYER_ID,
+  BUS_PULSE_LAYER_ID,
+] as const;
 
 const EMPTY_LINE_COLLECTION: FeatureCollection<LineString> = {
   type: "FeatureCollection",
@@ -116,16 +130,152 @@ function getGeoJsonSource(map: MapLibreMap, id: string) {
   return map.getSource(id) as GeoJSONSource | undefined;
 }
 
+function getOpenFreeMapStyle(isDark: boolean) {
+  return isDark
+    ? OPENFREEMAP_STYLE_BY_THEME.dark
+    : OPENFREEMAP_STYLE_BY_THEME.light;
+}
+
+function getIsDarkThemeSnapshot() {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+  return storedTheme === "dark" || (storedTheme !== "light" && prefersDark);
+}
+
+function subscribeToThemeChange(onChange: () => void) {
+  const media = window.matchMedia("(prefers-color-scheme: dark)");
+
+  window.addEventListener("storage", onChange);
+  window.addEventListener("theme-preference-change", onChange);
+  media.addEventListener("change", onChange);
+
+  return () => {
+    window.removeEventListener("storage", onChange);
+    window.removeEventListener("theme-preference-change", onChange);
+    media.removeEventListener("change", onChange);
+  };
+}
+
+function addMapOverlays(map: MapLibreMap) {
+  if (!map.getSource(ROUTE_SOURCE_ID)) {
+    map.addSource(ROUTE_SOURCE_ID, {
+      type: "geojson",
+      data: EMPTY_LINE_COLLECTION,
+    });
+  }
+
+  if (!map.getLayer(ROUTE_LAYER_ID)) {
+    map.addLayer({
+      id: ROUTE_LAYER_ID,
+      type: "line",
+      source: ROUTE_SOURCE_ID,
+      layout: {
+        "line-cap": "round",
+        "line-join": "round",
+      },
+      paint: {
+        "line-color": DEFAULT_ROUTE_COLOR,
+        "line-opacity": 0.75,
+        "line-width": 4,
+      },
+    });
+  }
+
+  if (!map.getSource(STOPS_SOURCE_ID)) {
+    map.addSource(STOPS_SOURCE_ID, {
+      type: "geojson",
+      data: EMPTY_POINT_COLLECTION,
+    });
+  }
+
+  if (!map.getLayer(STOPS_LAYER_ID)) {
+    map.addLayer({
+      id: STOPS_LAYER_ID,
+      type: "circle",
+      source: STOPS_SOURCE_ID,
+      paint: {
+        "circle-color": "#ffffff",
+        "circle-radius": 5,
+        "circle-stroke-color": "#666666",
+        "circle-stroke-width": 2,
+      },
+    });
+  }
+
+  if (!map.getSource(BUS_PULSE_SOURCE_ID)) {
+    map.addSource(BUS_PULSE_SOURCE_ID, {
+      type: "geojson",
+      data: EMPTY_POINT_COLLECTION,
+    });
+  }
+
+  if (!map.getLayer(BUS_PULSE_LAYER_ID)) {
+    map.addLayer({
+      id: BUS_PULSE_LAYER_ID,
+      type: "circle",
+      source: BUS_PULSE_SOURCE_ID,
+      paint: {
+        "circle-color": DEFAULT_ROUTE_COLOR,
+        "circle-opacity": 0.18,
+        "circle-radius": 18,
+        "circle-stroke-color": DEFAULT_ROUTE_COLOR,
+        "circle-stroke-opacity": 0.3,
+        "circle-stroke-width": 1,
+      },
+    });
+  }
+}
+
+function preserveMapOverlays(
+  previousStyle: StyleSpecification | undefined,
+  nextStyle: StyleSpecification
+) {
+  if (!previousStyle) {
+    return nextStyle;
+  }
+
+  const preservedSources = Object.fromEntries(
+    APP_SOURCE_IDS.flatMap((id) => {
+      const source = previousStyle.sources[id];
+      return source ? [[id, source]] : [];
+    })
+  );
+  const preservedLayers = previousStyle.layers.filter((layer) =>
+    APP_LAYER_IDS.includes(layer.id as (typeof APP_LAYER_IDS)[number])
+  );
+
+  return {
+    ...nextStyle,
+    sources: {
+      ...nextStyle.sources,
+      ...preservedSources,
+    },
+    layers: [...nextStyle.layers, ...preservedLayers],
+  };
+}
+
 export default function BusMap({
   routeInfo,
   buses,
   onStopClick,
 }: BusMapProps) {
+  const isDarkTheme = useSyncExternalStore(
+    subscribeToThemeChange,
+    getIsDarkThemeSnapshot,
+    () => false
+  );
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const busMarkersRef = useRef<Marker[]>([]);
   const onStopClickRef = useRef(onStopClick);
   const routeInfoRef = useRef(routeInfo);
+  const updateMapDataRef = useRef<(() => void) | null>(null);
+  const styleUrlRef = useRef<string | null>(null);
   const stops = useMemo(() => getStops(routeInfo), [routeInfo]);
 
   useEffect(() => {
@@ -139,13 +289,15 @@ export default function BusMap({
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
 
+    const initialStyle = getOpenFreeMapStyle(getIsDarkThemeSnapshot());
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
-      style: OPENFREEMAP_POSITRON_STYLE,
+      style: initialStyle,
       center: OAKVILLE_CENTER,
       zoom: 13,
       attributionControl: false,
     });
+    styleUrlRef.current = initialStyle;
 
     map.addControl(
       new maplibregl.AttributionControl({ compact: true }),
@@ -154,58 +306,7 @@ export default function BusMap({
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }));
 
     map.on("load", () => {
-      map.addSource(ROUTE_SOURCE_ID, {
-        type: "geojson",
-        data: EMPTY_LINE_COLLECTION,
-      });
-      map.addLayer({
-        id: ROUTE_LAYER_ID,
-        type: "line",
-        source: ROUTE_SOURCE_ID,
-        layout: {
-          "line-cap": "round",
-          "line-join": "round",
-        },
-        paint: {
-          "line-color": DEFAULT_ROUTE_COLOR,
-          "line-opacity": 0.75,
-          "line-width": 4,
-        },
-      });
-
-      map.addSource(STOPS_SOURCE_ID, {
-        type: "geojson",
-        data: EMPTY_POINT_COLLECTION,
-      });
-      map.addLayer({
-        id: STOPS_LAYER_ID,
-        type: "circle",
-        source: STOPS_SOURCE_ID,
-        paint: {
-          "circle-color": "#ffffff",
-          "circle-radius": 5,
-          "circle-stroke-color": "#666666",
-          "circle-stroke-width": 2,
-        },
-      });
-
-      map.addSource(BUS_PULSE_SOURCE_ID, {
-        type: "geojson",
-        data: EMPTY_POINT_COLLECTION,
-      });
-      map.addLayer({
-        id: BUS_PULSE_LAYER_ID,
-        type: "circle",
-        source: BUS_PULSE_SOURCE_ID,
-        paint: {
-          "circle-color": DEFAULT_ROUTE_COLOR,
-          "circle-opacity": 0.18,
-          "circle-radius": 18,
-          "circle-stroke-color": DEFAULT_ROUTE_COLOR,
-          "circle-stroke-opacity": 0.3,
-          "circle-stroke-width": 1,
-        },
-      });
+      addMapOverlays(map);
 
       map.on("click", STOPS_LAYER_ID, (event) => {
         const feature = event.features?.[0];
@@ -238,8 +339,26 @@ export default function BusMap({
       busMarkersRef.current = [];
       map.remove();
       mapRef.current = null;
+      styleUrlRef.current = null;
     };
   }, []);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    const style = getOpenFreeMapStyle(isDarkTheme);
+    if (styleUrlRef.current === style) return;
+
+    const restoreOverlays = () => {
+      addMapOverlays(map);
+      updateMapDataRef.current?.();
+    };
+
+    map.once("style.load", restoreOverlays);
+    map.setStyle(style, { transformStyle: preserveMapOverlays });
+    styleUrlRef.current = style;
+  }, [isDarkTheme]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -322,6 +441,8 @@ export default function BusMap({
 
       fitBounds(map, routeInfo, buses);
     };
+
+    updateMapDataRef.current = updateMapData;
 
     if (map.loaded()) {
       updateMapData();
