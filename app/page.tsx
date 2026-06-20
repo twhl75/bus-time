@@ -1,16 +1,22 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import logoDark from "@/assets/logo-dark.png";
 import logoLight from "@/assets/logo-light.png";
 import { RouteSelector } from "@/components/route-selector";
+import { DirectionToggle } from "@/components/direction-toggle";
 import { BusList } from "@/components/bus-list";
 import { StopPredictions } from "@/components/stop-predictions";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { BusFront, RefreshCw, Route } from "lucide-react";
+import {
+  filterBusesByDirection,
+  filterRouteInfoByDirection,
+  getRouteDirections,
+} from "@/lib/route-directions";
 import type { Bus, RouteInfo, StopInfo, BusStop } from "@/lib/types";
 
 const BusMap = dynamic(() => import("@/components/bus-map"), { ssr: false });
@@ -20,10 +26,29 @@ export default function Home() {
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
   const [buses, setBuses] = useState<Bus[]>([]);
   const [loading, setLoading] = useState(false);
+  const [selectedDirection, setSelectedDirection] = useState<string | null>(
+    null
+  );
 
   const [stopInfo, setStopInfo] = useState<StopInfo | null>(null);
   const [stopSheetOpen, setStopSheetOpen] = useState(false);
   const [stopLoading, setStopLoading] = useState(false);
+
+  const directions = useMemo(() => getRouteDirections(routeInfo), [routeInfo]);
+  const activeDirection = useMemo(
+    () =>
+      directions.find((direction) => direction.key === selectedDirection) ??
+      null,
+    [directions, selectedDirection]
+  );
+  const visibleRouteInfo = useMemo(
+    () => filterRouteInfoByDirection(routeInfo, activeDirection),
+    [routeInfo, activeDirection]
+  );
+  const visibleBuses = useMemo(
+    () => filterBusesByDirection(buses, activeDirection),
+    [buses, activeDirection]
+  );
 
   const fetchBuses = useCallback(async (route: string) => {
     const res = await fetch(`/api/buses?route=${route}`);
@@ -37,6 +62,9 @@ export default function Home() {
     const res = await fetch(`/api/route-points?route=${route}`);
     if (res.ok) {
       const data: RouteInfo = await res.json();
+      const defaultDirection = getRouteDirections(data)[0];
+
+      setSelectedDirection(defaultDirection?.key ?? null);
       setRouteInfo(data);
     }
   }, []);
@@ -47,6 +75,8 @@ export default function Home() {
       setLoading(true);
       setBuses([]);
       setRouteInfo(null);
+      setSelectedDirection(null);
+      setStopSheetOpen(false);
       try {
         await Promise.all([fetchRouteInfo(route), fetchBuses(route)]);
       } finally {
@@ -86,8 +116,8 @@ export default function Home() {
     <main className="relative h-dvh w-screen overflow-hidden bg-background">
       <div className="absolute inset-0">
         <BusMap
-          routeInfo={routeInfo}
-          buses={buses}
+          routeInfo={visibleRouteInfo}
+          buses={visibleBuses}
           onStopClick={handleStopClick}
         />
       </div>
@@ -123,6 +153,12 @@ export default function Home() {
           />
         </div>
 
+        <DirectionToggle
+          directions={directions}
+          value={activeDirection?.key ?? null}
+          onValueChange={setSelectedDirection}
+        />
+
         <Button
           variant="secondary"
           size="icon"
@@ -145,7 +181,7 @@ export default function Home() {
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
               {selectedRoute
-                ? `${buses.length} vehicle${buses.length === 1 ? "" : "s"} reporting`
+                ? `${visibleBuses.length} vehicle${visibleBuses.length === 1 ? "" : "s"} reporting${activeDirection ? ` · ${activeDirection.label}` : ""}`
                 : "Choose a route to begin"}
             </p>
           </div>
@@ -171,7 +207,7 @@ export default function Home() {
               Loading buses…
             </div>
           ) : (
-            <BusList buses={buses} routeColor={routeInfo?.color} />
+            <BusList buses={visibleBuses} routeColor={routeInfo?.color} />
           )}
         </div>
       </aside>

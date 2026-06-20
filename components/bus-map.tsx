@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useSyncExternalStore } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { BusFront } from "lucide-react";
 import maplibregl, {
   GeoJSONSource,
   LngLatBounds,
@@ -64,7 +66,10 @@ function createBusMarkerElement(color: string, label: string) {
   const marker = document.createElement("div");
   marker.className = "bus-marker";
   marker.style.background = color;
-  marker.textContent = label;
+  marker.setAttribute("aria-label", `Bus ${label}`);
+  marker.innerHTML = renderToStaticMarkup(
+    <BusFront className="bus-marker-icon" aria-hidden="true" />
+  );
 
   return marker;
 }
@@ -271,6 +276,7 @@ export default function BusMap({
 
     map.on("load", () => {
       addMapOverlays(map, getIsDarkThemeSnapshot());
+      updateMapDataRef.current?.();
 
       map.on("click", STOPS_LAYER_ID, (event) => {
         const feature = event.features?.[0];
@@ -327,6 +333,10 @@ export default function BusMap({
     if (!map) return;
 
     const updateMapData = () => {
+      if (!map.isStyleLoaded()) return;
+
+      addMapOverlays(map, getIsDarkThemeSnapshot());
+
       const routeColor = routeInfo?.color || DEFAULT_ROUTE_COLOR;
       const routeSource = getGeoJsonSource(map, ROUTE_SOURCE_ID);
       const stopsSource = getGeoJsonSource(map, STOPS_SOURCE_ID);
@@ -406,12 +416,15 @@ export default function BusMap({
 
     updateMapDataRef.current = updateMapData;
 
-    if (map.loaded()) {
+    if (map.isStyleLoaded()) {
       updateMapData();
-      return;
+    } else {
+      map.once("style.load", updateMapData);
     }
 
-    map.once("load", updateMapData);
+    return () => {
+      map.off("style.load", updateMapData);
+    };
   }, [routeInfo, stops, buses]);
 
   return (
