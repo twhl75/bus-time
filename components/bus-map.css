@@ -1,0 +1,20 @@
+.maplibregl-ctrl-top-right {
+  right: 12px !important;
+  top: 88px !important;
+}
+
+.maplibregl-ctrl-bottom-right {
+  bottom: calc(36vh + 20px) !important;
+  right: 8px !important;
+}
+
+@media (min-width: 1024px) {
+  .maplibregl-ctrl-top-right {
+    right: 388px !important;
+  }
+
+  .maplibregl-ctrl-bottom-right {
+    bottom: 8px !important;
+    right: 380px !important;
+  }
+}

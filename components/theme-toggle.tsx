@@ -123,13 +123,22 @@ export function ThemeToggle() {
       value={mode}
       onValueChange={(value) => value !== null && isThemeMode(value) && setThemeMode(value)}
     >
-      <SelectTrigger size="sm" className="w-[8.5rem]" aria-label="Theme mode">
-        <span className="flex items-center gap-1.5">
+      <SelectTrigger
+        size="default"
+        className="w-16 justify-between px-3"
+        aria-label={`Theme mode: ${label}`}
+        title={`Theme: ${label}`}
+      >
+        <span className="flex items-center">
           <Icon className="size-4" />
-          <span>{label}</span>
+          <span className="sr-only">{label}</span>
         </span>
       </SelectTrigger>
-      <SelectContent align="end" className="min-w-0">
+      <SelectContent
+        align="end"
+        alignItemWithTrigger={false}
+        className="w-36"
+      >
         <SelectItem value="system">
           <Eclipse className="size-4" />
           System

@@ -24,11 +24,14 @@ export function StopPredictions({
 }: StopPredictionsProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="max-h-[50vh]">
-        <SheetHeader className="pb-2 pr-12">
+      <SheetContent
+        side="bottom"
+        className="mx-auto max-h-[65vh] max-w-3xl rounded-t-3xl border-x border-t"
+      >
+        <SheetHeader className="border-b border-border pb-5 pr-16">
           <SheetTitle>{stop?.name ?? "Stop Predictions"}</SheetTitle>
         </SheetHeader>
-        <div className="overflow-y-auto px-4 pb-6 pt-1">
+        <div className="overflow-y-auto px-6 pb-8 pt-5">
           {loading ? (
             <div className="flex items-center justify-center py-8 text-muted-foreground">
               Loading predictions...
@@ -38,11 +41,11 @@ export function StopPredictions({
               No upcoming arrivals at this stop
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="overflow-hidden rounded-lg border border-border">
               {stop.predictions.map((pred, i) => (
                 <div
                   key={`${pred.vehicleId}-${i}`}
-                  className="flex items-center justify-between gap-3 rounded-lg border p-4"
+                  className="flex min-h-20 items-center justify-between gap-4 border-b border-border p-4 last:border-b-0"
                 >
                   <div className="space-y-1">
                     <div className="font-medium">{pred.destination}</div>
