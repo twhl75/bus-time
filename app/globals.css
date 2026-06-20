@@ -142,14 +142,16 @@
   color: white;
   cursor: pointer;
   display: flex;
-  font-size: 11px;
-  font-variant-numeric: tabular-nums;
-  font-weight: 650;
-  height: 34px;
+  height: 40px;
   justify-content: center;
-  letter-spacing: -0.02em;
-  min-width: 34px;
-  padding: 0 7px;
+  padding: 0;
+  width: 40px;
+}
+
+.bus-marker-icon {
+  height: 20px;
+  stroke-width: 2.25;
+  width: 20px;
 }
 
 .maplibregl-popup-content {
