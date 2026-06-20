@@ -5,36 +5,12 @@ import "./globals.css";
 const themeInitScript = `(() => {
   const storageKey = "theme-preference";
   const root = document.documentElement;
-  const syncFavicons = (theme) => {
-    const darkFavicon = document.querySelector('link[rel="icon"][data-app-favicon="dark"]');
-    const lightFavicon = document.querySelector('link[rel="icon"][data-app-favicon="light"]');
-
-    if (!darkFavicon || !lightFavicon) {
-      return;
-    }
-
-    if (theme === "dark") {
-      darkFavicon.media = "all";
-      lightFavicon.media = "not all";
-      return;
-    }
-
-    if (theme === "light") {
-      darkFavicon.media = "not all";
-      lightFavicon.media = "all";
-      return;
-    }
-
-    darkFavicon.media = "(prefers-color-scheme: dark)";
-    lightFavicon.media = "(prefers-color-scheme: light)";
-  };
   const stored = localStorage.getItem(storageKey);
-  const theme = stored === "light" || stored === "dark" || stored === "system" ? stored : "system";
-  const media = window.matchMedia("(prefers-color-scheme: dark)");
-  const isDark = theme === "dark" || (theme === "system" && media.matches);
+  const mode = stored === "light" || stored === "dark" || stored === "system" ? stored : "system";
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const isDark = mode === "dark" || (mode === "system" && prefersDark);
   root.classList.toggle("dark", isDark);
   root.style.colorScheme = isDark ? "dark" : "light";
-  syncFavicons(theme);
 })();`;
 
 const geistSans = Geist({
@@ -48,7 +24,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Oakville Bus Tracker",
+  title: "Bus Time",
   description: "Real-time bus arrival tracking for Oakville Transit",
 };
 

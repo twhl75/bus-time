@@ -1,7 +1,7 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { BusFront, MapPin } from "lucide-react";
 import type { Bus } from "@/lib/types";
 
 interface BusListProps {
@@ -12,44 +12,51 @@ interface BusListProps {
 export function BusList({ buses, routeColor }: BusListProps) {
   if (buses.length === 0) {
     return (
-      <div className="flex items-center justify-center p-8 text-muted-foreground">
-        No buses currently running on this route
+      <div className="flex min-h-48 flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border px-6 text-center">
+        <span className="flex size-11 items-center justify-center rounded-md bg-muted text-muted-foreground">
+          <BusFront className="size-5" />
+        </span>
+        <div>
+          <p className="font-semibold text-foreground">No active buses</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            There are no vehicles reporting on this route right now.
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="overflow-hidden rounded-lg border border-border bg-card">
       {buses.map((bus) => (
-        <Card key={bus.id} className="gap-0 py-0">
-          <CardHeader className="pb-2 pt-4">
-            <CardTitle className="flex items-center justify-between text-sm">
-              <span className="flex items-center gap-2">
-                <span
-                  className="inline-block h-3 w-3 rounded-full"
-                  style={{ backgroundColor: routeColor || "#333" }}
-                />
-                Bus #{bus.id}
-              </span>
-              <Badge variant="secondary" className="text-xs">
-                {bus.directionCode}
-              </Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pb-4 pt-0">
-            <div className="text-sm text-muted-foreground space-y-1">
-              <div className="flex justify-between">
-                <span className="font-medium text-foreground">
+        <article
+          key={bus.id}
+          className="group flex min-h-24 items-start gap-3 border-b border-border p-4 transition-colors last:border-b-0 hover:bg-muted/70"
+        >
+          <span
+            className="flex size-11 shrink-0 items-center justify-center rounded-md border bg-card"
+            style={{ borderColor: routeColor || "#cfcfcb" }}
+          >
+            <BusFront className="size-5" style={{ color: routeColor || "#171717" }} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h3 className="truncate font-semibold text-foreground">
+                  Bus #{bus.id}
+                </h3>
+                <p className="mt-0.5 truncate text-sm text-muted-foreground">
                   {bus.destination}
-                </span>
+                </p>
               </div>
-              <div>{bus.direction}</div>
-              <div className="text-xs font-mono">
-                {bus.lat.toFixed(5)}, {bus.lon.toFixed(5)}
-              </div>
+              <Badge variant="secondary">{bus.directionCode}</Badge>
             </div>
-          </CardContent>
-        </Card>
+            <p className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
+              <MapPin className="size-3.5" />
+              <span className="truncate">{bus.direction}</span>
+            </p>
+          </div>
+        </article>
       ))}
     </div>
   );

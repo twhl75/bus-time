@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import logoDark from "@/assets/logo-dark.png";
@@ -10,32 +10,26 @@ import { BusList } from "@/components/bus-list";
 import { StopPredictions } from "@/components/stop-predictions";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
+import { BusFront, RefreshCw, Route } from "lucide-react";
 import type { Bus, RouteInfo, StopInfo, BusStop } from "@/lib/types";
 
 const BusMap = dynamic(() => import("@/components/bus-map"), { ssr: false });
-
-const REFRESH_INTERVAL = 30_000;
 
 export default function Home() {
   const [selectedRoute, setSelectedRoute] = useState("");
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
   const [buses, setBuses] = useState<Bus[]>([]);
   const [loading, setLoading] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const [autoRefresh, setAutoRefresh] = useState(true);
 
   const [stopInfo, setStopInfo] = useState<StopInfo | null>(null);
   const [stopSheetOpen, setStopSheetOpen] = useState(false);
   const [stopLoading, setStopLoading] = useState(false);
-
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchBuses = useCallback(async (route: string) => {
     const res = await fetch(`/api/buses?route=${route}`);
     if (res.ok) {
       const data: Bus[] = await res.json();
       setBuses(data);
-      setLastUpdated(new Date());
     }
   }, []);
 
@@ -68,22 +62,6 @@ export default function Home() {
     }
   }, [selectedRoute, fetchBuses]);
 
-  // Auto-refresh bus positions
-  useEffect(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    if (autoRefresh && selectedRoute) {
-      intervalRef.current = setInterval(() => {
-        fetchBuses(selectedRoute);
-      }, REFRESH_INTERVAL);
-    }
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [autoRefresh, selectedRoute, fetchBuses]);
-
   const handleStopClick = useCallback(
     async (stop: BusStop, routeId: string) => {
       setStopSheetOpen(true);
@@ -105,122 +83,105 @@ export default function Home() {
   );
 
   return (
-    <div className="flex h-screen flex-col">
-      {/* Header */}
-      <header className="border-b bg-card px-4 py-3">
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-          <h1 className="flex items-center gap-2 text-lg font-semibold whitespace-nowrap">
-            <span className="relative size-7 shrink-0" aria-hidden="true">
-              <Image
-                src={logoLight}
-                alt=""
-                fill
-                priority
-                sizes="28px"
-                className="object-contain dark:hidden"
-              />
-              <Image
-                src={logoDark}
-                alt=""
-                fill
-                priority
-                sizes="28px"
-                className="hidden object-contain dark:block"
-              />
-            </span>
-            Oakville Bus Tracker
-          </h1>
+    <main className="relative h-dvh w-screen overflow-hidden bg-background">
+      <div className="absolute inset-0">
+        <BusMap
+          routeInfo={routeInfo}
+          buses={buses}
+          onStopClick={handleStopClick}
+        />
+      </div>
+
+      <header className="soft-signal-panel absolute top-3 right-3 left-3 z-20 flex items-center gap-2 rounded-xl border border-border bg-card/95 p-2 backdrop-blur-md sm:top-4 sm:right-auto sm:left-4 sm:w-auto sm:gap-3">
+        <span
+          className="relative flex size-12 shrink-0 items-center justify-center rounded-md border border-border bg-card"
+          aria-label="Bus Time"
+        >
+          <Image
+            src={logoLight}
+            alt=""
+            fill
+            priority
+            sizes="48px"
+            className="object-contain p-2.5 dark:hidden"
+          />
+          <Image
+            src={logoDark}
+            alt=""
+            fill
+            priority
+            sizes="48px"
+            className="hidden object-contain p-2.5 dark:block"
+          />
+        </span>
+
+        <div className="min-w-0 flex-1 sm:w-80 sm:flex-none">
           <RouteSelector
             value={selectedRoute}
             onValueChange={handleRouteChange}
             disabled={loading}
           />
-          <div className="flex w-full flex-wrap items-center gap-2 sm:ml-auto sm:w-auto sm:justify-end">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRefresh}
-              disabled={!selectedRoute || loading}
-            >
-              ↻ Refresh
-            </Button>
-            <Button
-              variant={autoRefresh ? "default" : "outline"}
-              size="sm"
-              onClick={() => setAutoRefresh(!autoRefresh)}
-            >
-              Auto {autoRefresh ? "ON" : "OFF"}
-            </Button>
-            <ThemeToggle />
-            {lastUpdated && (
-              <span className="w-full text-xs text-muted-foreground sm:ml-1 sm:w-auto sm:whitespace-nowrap">
-                Updated {lastUpdated.toLocaleTimeString()}
-              </span>
-            )}
-          </div>
         </div>
-        {routeInfo && (
-          <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
-            <span
-              className="inline-block h-3 w-3 rounded-full"
-              style={{ backgroundColor: routeInfo.color }}
-            />
-            <span className="font-medium text-foreground">
-              {routeInfo.shortName} — {routeInfo.name}
-            </span>
-            <span>·</span>
-            <span>
-              {buses.length} bus{buses.length !== 1 ? "es" : ""} active
-            </span>
-          </div>
-        )}
+
+        <Button
+          variant="secondary"
+          size="icon"
+          onClick={handleRefresh}
+          disabled={!selectedRoute || loading}
+          aria-label="Refresh bus positions"
+          title="Refresh"
+        >
+          <RefreshCw className={loading ? "animate-spin" : ""} />
+        </Button>
+
+        <ThemeToggle />
       </header>
 
-      {/* Main content */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Map */}
-        <div className="flex-1 relative isolate">
-          {!selectedRoute ? (
-            <div className="flex h-full items-center justify-center text-muted-foreground">
-              Select a route to see bus locations
-            </div>
-          ) : loading ? (
-            <div className="flex h-full items-center justify-center text-muted-foreground">
-              Loading route data...
-            </div>
-          ) : (
-            <BusMap
-              routeInfo={routeInfo}
-              buses={buses}
-              onStopClick={handleStopClick}
-            />
-          )}
+      <aside className="soft-signal-panel absolute right-3 bottom-3 left-3 z-10 flex h-[36vh] flex-col overflow-hidden rounded-2xl border border-border bg-card/95 p-4 backdrop-blur-md lg:top-4 lg:right-4 lg:bottom-4 lg:left-auto lg:h-auto lg:w-[360px] lg:p-5">
+        <div className="mb-4 flex shrink-0 items-start justify-between gap-3">
+          <div>
+            <h1 className="text-lg font-semibold tracking-[-0.02em]">
+              Active buses
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {selectedRoute
+                ? `${buses.length} vehicle${buses.length === 1 ? "" : "s"} reporting`
+                : "Choose a route to begin"}
+            </p>
+          </div>
+          <span className="flex size-10 items-center justify-center rounded-md bg-muted">
+            <BusFront className="size-5" />
+          </span>
         </div>
 
-        {/* Sidebar - bus list */}
-        {selectedRoute && (
-          <aside className="w-80 shrink-0 overflow-y-auto border-l bg-card p-3 hidden lg:block">
-            <h2 className="mb-3 text-sm font-semibold text-muted-foreground">
-              Active Buses
-            </h2>
-            {loading ? (
-              <div className="flex items-center justify-center py-8 text-muted-foreground">
-                Loading...
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          {!selectedRoute ? (
+            <div className="flex min-h-36 flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border px-6 text-center sm:min-h-48">
+              <Route className="size-6 text-muted-foreground" />
+              <div>
+                <p className="font-semibold">No route selected</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Pick a route to see its active fleet.
+                </p>
               </div>
-            ) : (
-              <BusList buses={buses} routeColor={routeInfo?.color} />
-            )}
-          </aside>
-        )}
-      </div>
+            </div>
+          ) : loading ? (
+            <div className="flex min-h-36 items-center justify-center gap-2 text-muted-foreground sm:min-h-48">
+              <RefreshCw className="size-4 animate-spin" />
+              Loading buses…
+            </div>
+          ) : (
+            <BusList buses={buses} routeColor={routeInfo?.color} />
+          )}
+        </div>
+      </aside>
 
-      {/* Stop predictions sheet */}
       <StopPredictions
         stop={stopInfo}
         open={stopSheetOpen}
         onOpenChange={setStopSheetOpen}
         loading={stopLoading}
       />
-    </div>
+    </main>
   );
 }

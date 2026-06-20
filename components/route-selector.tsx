@@ -5,7 +5,6 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select";
 import { ROUTES } from "@/lib/routes";
 
@@ -20,10 +19,22 @@ export function RouteSelector({
   onValueChange,
   disabled,
 }: RouteSelectorProps) {
+  const selectedLabel = ROUTES.find((route) => route.id === value);
+
   return (
     <Select value={value} onValueChange={(v) => v && onValueChange(v)} disabled={disabled}>
-      <SelectTrigger className="w-[24rem] max-w-[90vw]">
-        <SelectValue placeholder="Select a route" />
+      <SelectTrigger className="w-full">
+        <span
+          className={
+            selectedLabel
+              ? "min-w-0 flex-1 truncate text-left text-foreground"
+              : "min-w-0 flex-1 truncate text-left text-muted-foreground"
+          }
+        >
+          {selectedLabel
+            ? `${selectedLabel.id} — ${selectedLabel.name}`
+            : "Select a route"}
+        </span>
       </SelectTrigger>
       <SelectContent>
         {ROUTES.map((route) => (
