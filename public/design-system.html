@@ -1,0 +1,1619 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Design System</title>
+    <style>
+      :root {
+        --ds-background: #f4f4f3;
+        --ds-surface: #fafaf9;
+        --ds-elevated: #ffffff;
+        --ds-sunken: #f0f0ef;
+        --ds-text: #171717;
+        --ds-secondary: #5f5f5c;
+        --ds-muted: #8a8a86;
+        --ds-disabled: #b9b9b4;
+        --ds-border: #e5e5e2;
+        --ds-border-strong: #cfcfcb;
+        --ds-accent: #b81461;
+        --ds-accent-bright: #ec2f8f;
+        --ds-accent-warm: #f28a3b;
+        --ds-accent-muted: #fbe0ef;
+        --ds-accent-text: #71103d;
+        --ds-control: #20201f;
+        --ds-on-control: #ffffff;
+        --ds-focus: #d61d72;
+        --ds-success: #137a4b;
+        --ds-success-muted: #ddf4e8;
+        --ds-warning: #a05a00;
+        --ds-warning-muted: #fff0ce;
+        --ds-danger: #c9342f;
+        --ds-danger-muted: #fce3e1;
+        --ds-information: #246bce;
+        --ds-information-muted: #e3eeff;
+        --ds-font: Geist, Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+        --ds-shadow-raised: 0 1px 2px rgb(17 17 17 / 6%), 0 4px 12px rgb(17 17 17 / 5%);
+        --ds-shadow-floating: 0 1px 2px rgb(17 17 17 / 8%), 0 10px 30px rgb(17 17 17 / 8%);
+      }
+
+      :root[data-theme="dark"] {
+        --ds-background: #141413;
+        --ds-surface: #1a1a19;
+        --ds-elevated: #222220;
+        --ds-sunken: #2a2a28;
+        --ds-text: #f7f7f4;
+        --ds-secondary: #c5c5bf;
+        --ds-muted: #969690;
+        --ds-disabled: #666662;
+        --ds-border: #343431;
+        --ds-border-strong: #4a4a46;
+        --ds-accent: #e64a99;
+        --ds-accent-bright: #ff66b4;
+        --ds-accent-warm: #ff9d52;
+        --ds-accent-muted: #4b2037;
+        --ds-accent-text: #ffc2df;
+        --ds-control: #f1f1ee;
+        --ds-on-control: #171717;
+        --ds-focus: #f064ac;
+        --ds-success: #67d59a;
+        --ds-success-muted: #183b2a;
+        --ds-warning: #f6bc63;
+        --ds-warning-muted: #493417;
+        --ds-danger: #ff8580;
+        --ds-danger-muted: #4a2523;
+        --ds-information: #82b2ff;
+        --ds-information-muted: #213653;
+        --ds-shadow-raised: 0 1px 2px rgb(0 0 0 / 28%), 0 4px 12px rgb(0 0 0 / 24%);
+        --ds-shadow-floating: 0 1px 2px rgb(0 0 0 / 30%), 0 14px 36px rgb(0 0 0 / 34%);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+        scroll-padding-top: 32px;
+      }
+
+      body {
+        margin: 0;
+        background: var(--ds-background);
+        color: var(--ds-text);
+        font-family: var(--ds-font);
+        letter-spacing: -0.005em;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      button:focus-visible,
+      input:focus-visible,
+      a:focus-visible {
+        outline: 2px solid var(--ds-focus);
+        outline-offset: 2px;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .loading-screen {
+        display: grid;
+        min-height: 100vh;
+        place-items: center;
+        color: var(--ds-secondary);
+      }
+
+      .loading-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        margin-right: 8px;
+        border-radius: 999px;
+        background: var(--ds-accent);
+        animation: breathe 1.2s ease-in-out infinite;
+      }
+
+      @keyframes breathe {
+        50% { transform: scale(1.5); opacity: 0.55; }
+      }
+
+      .shell {
+        display: grid;
+        grid-template-columns: 248px minmax(0, 1fr);
+        min-height: 100vh;
+      }
+
+      .sidebar {
+        position: sticky;
+        top: 0;
+        display: flex;
+        height: 100vh;
+        flex-direction: column;
+        gap: 28px;
+        padding: 28px 20px 20px;
+        background: var(--ds-surface);
+        border-right: 1px solid var(--ds-border);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 0 8px;
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 40px;
+        height: 40px;
+        flex: 0 0 40px;
+        place-items: center;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--ds-accent-warm), var(--ds-accent-bright) 54%, var(--ds-accent));
+        color: white;
+        font-size: 16px;
+        font-weight: 700;
+        box-shadow: var(--ds-shadow-raised);
+      }
+
+      .brand-name {
+        font-weight: 650;
+        letter-spacing: -0.02em;
+      }
+
+      .brand-version {
+        margin-top: 2px;
+        color: var(--ds-muted);
+        font-size: 12px;
+        letter-spacing: 0.01em;
+      }
+
+      .nav {
+        display: grid;
+        gap: 4px;
+      }
+
+      .nav a {
+        display: flex;
+        min-height: 44px;
+        align-items: center;
+        border: 1px solid transparent;
+        border-radius: 12px;
+        padding: 0 12px;
+        color: var(--ds-secondary);
+        font-size: 14px;
+        transition: 160ms ease-out;
+      }
+
+      .nav a:hover {
+        background: var(--ds-sunken);
+        color: var(--ds-text);
+      }
+
+      .nav a.active {
+        border-color: var(--ds-border);
+        background: var(--ds-elevated);
+        box-shadow: var(--ds-shadow-raised);
+        color: var(--ds-text);
+        font-weight: 600;
+      }
+
+      .sidebar-foot {
+        margin-top: auto;
+        padding: 16px 8px 4px;
+        border-top: 1px solid var(--ds-border);
+      }
+
+      .sync-state {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--ds-muted);
+        font-size: 12px;
+      }
+
+      .sync-pip {
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
+        background: var(--ds-success);
+        box-shadow: 0 0 0 4px var(--ds-success-muted);
+      }
+
+      .sync-state.changed .sync-pip {
+        background: var(--ds-accent);
+        box-shadow: 0 0 0 4px var(--ds-accent-muted);
+      }
+
+      .content {
+        min-width: 0;
+      }
+
+      .toolbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        min-height: 72px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 12px clamp(24px, 4vw, 56px);
+        border-bottom: 1px solid color-mix(in srgb, var(--ds-border) 78%, transparent);
+        background: color-mix(in srgb, var(--ds-background) 88%, transparent);
+        backdrop-filter: blur(16px);
+      }
+
+      .source-label {
+        color: var(--ds-secondary);
+        font-size: 13px;
+      }
+
+      .source-label strong {
+        color: var(--ds-text);
+        font-weight: 600;
+      }
+
+      .toolbar-actions,
+      .theme-switch {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .theme-switch {
+        padding: 4px;
+        border: 1px solid var(--ds-border);
+        border-radius: 12px;
+        background: var(--ds-sunken);
+      }
+
+      .theme-switch button {
+        min-height: 34px;
+        border: 0;
+        border-radius: 8px;
+        padding: 0 11px;
+        background: transparent;
+        color: var(--ds-secondary);
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .theme-switch button[aria-pressed="true"] {
+        background: var(--ds-elevated);
+        box-shadow: 0 1px 2px rgb(17 17 17 / 8%);
+        color: var(--ds-text);
+      }
+
+      .main {
+        width: min(100%, 1280px);
+        margin: 0 auto;
+        padding: 52px clamp(24px, 4vw, 56px) 96px;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.7fr);
+        gap: 24px;
+        align-items: stretch;
+        margin-bottom: 72px;
+      }
+
+      .hero-copy,
+      .hero-art {
+        min-height: 360px;
+        border-radius: 24px;
+      }
+
+      .hero-copy {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: clamp(28px, 5vw, 56px);
+        border: 1px solid var(--ds-border);
+        background: var(--ds-elevated);
+      }
+
+      .eyebrow {
+        color: var(--ds-accent);
+        font-size: 12px;
+        font-weight: 650;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      h1 {
+        max-width: 720px;
+        margin-bottom: 20px;
+        font-size: clamp(44px, 6vw, 76px);
+        font-weight: 600;
+        letter-spacing: -0.055em;
+        line-height: 0.98;
+      }
+
+      .hero-description {
+        max-width: 690px;
+        margin-bottom: 0;
+        color: var(--ds-secondary);
+        font-size: clamp(17px, 2vw, 20px);
+        line-height: 1.55;
+      }
+
+      .hero-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 40px;
+      }
+
+      .chip {
+        display: inline-flex;
+        min-height: 28px;
+        align-items: center;
+        border-radius: 999px;
+        padding: 0 10px;
+        background: var(--ds-accent-muted);
+        color: var(--ds-accent-text);
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .chip.neutral {
+        background: var(--ds-sunken);
+        color: var(--ds-secondary);
+      }
+
+      .hero-art {
+        position: relative;
+        min-height: 420px;
+        overflow: hidden;
+        background: linear-gradient(145deg, var(--ds-accent-warm), var(--ds-accent-bright) 52%, var(--ds-accent));
+      }
+
+      .hero-orbit {
+        position: absolute;
+        border: 1px solid rgb(255 255 255 / 38%);
+        border-radius: 999px;
+      }
+
+      .hero-orbit.one {
+        width: 330px;
+        height: 330px;
+        top: -72px;
+        right: -80px;
+      }
+
+      .hero-orbit.two {
+        width: 220px;
+        height: 220px;
+        right: 90px;
+        bottom: -90px;
+      }
+
+      .hero-card {
+        position: absolute;
+        right: 24px;
+        bottom: 24px;
+        left: 24px;
+        padding: 20px;
+        border: 1px solid rgb(255 255 255 / 34%);
+        border-radius: 16px;
+        background: rgb(255 255 255 / 17%);
+        box-shadow: 0 16px 48px rgb(89 5 45 / 18%);
+        color: white;
+        backdrop-filter: blur(14px);
+      }
+
+      .hero-card-label {
+        font-size: 12px;
+        font-weight: 600;
+        opacity: 0.78;
+      }
+
+      .hero-card-value {
+        margin-top: 8px;
+        font-size: 24px;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+      }
+
+      .hero-card-line {
+        width: 64%;
+        height: 8px;
+        margin-top: 18px;
+        border-radius: 999px;
+        background: rgb(255 255 255 / 42%);
+      }
+
+      .section {
+        margin-top: 80px;
+        scroll-margin-top: 96px;
+      }
+
+      .section-head {
+        display: grid;
+        grid-template-columns: minmax(220px, 0.36fr) minmax(0, 0.64fr);
+        gap: 32px;
+        margin-bottom: 28px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid var(--ds-border);
+      }
+
+      .section-kicker {
+        margin-bottom: 8px;
+        color: var(--ds-muted);
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .section h2 {
+        margin-bottom: 0;
+        font-size: clamp(28px, 3vw, 38px);
+        font-weight: 600;
+        letter-spacing: -0.04em;
+        line-height: 1.1;
+      }
+
+      .section-intro {
+        max-width: 720px;
+        margin: 0;
+        color: var(--ds-secondary);
+        font-size: 16px;
+        line-height: 1.65;
+      }
+
+      .subhead {
+        margin: 40px 0 16px;
+        font-size: 18px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+      }
+
+      .color-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .swatch {
+        min-width: 0;
+        overflow: hidden;
+        border: 1px solid var(--ds-border);
+        border-radius: 16px;
+        background: var(--ds-elevated);
+      }
+
+      .swatch-color {
+        height: 118px;
+        border-bottom: 1px solid var(--ds-border);
+      }
+
+      .swatch-meta {
+        padding: 14px;
+      }
+
+      .swatch-name {
+        overflow: hidden;
+        font-size: 13px;
+        font-weight: 600;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .swatch-value {
+        margin-top: 5px;
+        color: var(--ds-muted);
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 11px;
+        text-transform: uppercase;
+      }
+
+      .type-list {
+        overflow: hidden;
+        border: 1px solid var(--ds-border);
+        border-radius: 16px;
+        background: var(--ds-elevated);
+      }
+
+      .type-row {
+        display: grid;
+        grid-template-columns: 150px minmax(0, 1fr) 150px;
+        gap: 24px;
+        align-items: baseline;
+        padding: 24px;
+      }
+
+      .type-row + .type-row {
+        border-top: 1px solid var(--ds-border);
+      }
+
+      .type-token {
+        color: var(--ds-secondary);
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .type-sample {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .type-meta {
+        color: var(--ds-muted);
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 11px;
+        text-align: right;
+      }
+
+      .scale-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .token-panel {
+        padding: 24px;
+        border: 1px solid var(--ds-border);
+        border-radius: 16px;
+        background: var(--ds-elevated);
+      }
+
+      .token-panel h3 {
+        margin-bottom: 24px;
+        font-size: 16px;
+        font-weight: 600;
+      }
+
+      .spacing-list,
+      .radius-list {
+        display: grid;
+        gap: 16px;
+      }
+
+      .spacing-row {
+        display: grid;
+        grid-template-columns: 44px minmax(0, 1fr) 54px;
+        gap: 12px;
+        align-items: center;
+        color: var(--ds-secondary);
+        font-size: 12px;
+      }
+
+      .spacing-bar {
+        height: 10px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, var(--ds-accent), var(--ds-accent-bright));
+      }
+
+      .radius-list {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+      }
+
+      .radius-token {
+        text-align: center;
+      }
+
+      .radius-shape {
+        aspect-ratio: 1;
+        margin-bottom: 10px;
+        border: 1px solid var(--ds-border-strong);
+        background: var(--ds-sunken);
+      }
+
+      .radius-label {
+        color: var(--ds-secondary);
+        font-size: 12px;
+      }
+
+      .component-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .specimen {
+        min-height: 240px;
+        padding: 24px;
+        border: 1px solid var(--ds-border);
+        border-radius: 16px;
+        background: var(--ds-elevated);
+      }
+
+      .specimen.wide {
+        grid-column: 1 / -1;
+      }
+
+      .specimen-title {
+        margin-bottom: 6px;
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .specimen-note {
+        margin-bottom: 28px;
+        color: var(--ds-muted);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .button-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .demo-button {
+        min-height: 48px;
+        border: 1px solid transparent;
+        border-radius: 12px;
+        padding: 0 18px;
+        font-size: 15px;
+        font-weight: 600;
+      }
+
+      .demo-button.primary {
+        background: var(--ds-control);
+        color: var(--ds-on-control);
+      }
+
+      .demo-button.secondary {
+        border-color: var(--ds-border);
+        background: var(--ds-sunken);
+        color: var(--ds-text);
+      }
+
+      .demo-button.accent {
+        background: var(--ds-accent);
+        color: white;
+      }
+
+      .demo-button:disabled {
+        background: var(--ds-sunken);
+        color: var(--ds-disabled);
+        cursor: not-allowed;
+      }
+
+      .input-stack {
+        display: grid;
+        gap: 18px;
+      }
+
+      .input-label {
+        display: grid;
+        gap: 8px;
+        color: var(--ds-secondary);
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .demo-input {
+        width: 100%;
+        min-height: 48px;
+        border: 1px solid var(--ds-border);
+        border-radius: 12px;
+        padding: 0 16px;
+        background: var(--ds-sunken);
+        color: var(--ds-text);
+      }
+
+      .demo-input:focus {
+        background: var(--ds-elevated);
+      }
+
+      .navigation-demo {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+        padding: 12px;
+        border-radius: 16px;
+        background: var(--ds-surface);
+      }
+
+      .nav-demo-item {
+        min-height: 56px;
+        border: 1px solid transparent;
+        border-radius: 12px;
+        background: transparent;
+        color: var(--ds-secondary);
+        font-size: 14px;
+      }
+
+      .nav-demo-item:hover {
+        background: var(--ds-sunken);
+        color: var(--ds-text);
+      }
+
+      .nav-demo-item.selected {
+        border-color: var(--ds-border);
+        background: var(--ds-elevated);
+        box-shadow: var(--ds-shadow-raised);
+        color: var(--ds-text);
+        font-weight: 600;
+      }
+
+      .card-demo-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .mini-card {
+        min-height: 154px;
+        padding: 20px;
+        border: 1px solid var(--ds-border);
+        border-radius: 16px;
+        background: var(--ds-elevated);
+      }
+
+      .mini-card.floating {
+        border-color: transparent;
+        box-shadow: var(--ds-shadow-floating);
+      }
+
+      .mini-card.reward {
+        border-color: transparent;
+        background: linear-gradient(135deg, var(--ds-accent-warm), var(--ds-accent-bright) 55%, var(--ds-accent));
+        color: white;
+      }
+
+      .mini-card-kicker {
+        margin-bottom: 18px;
+        color: var(--ds-muted);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .reward .mini-card-kicker {
+        color: rgb(255 255 255 / 72%);
+      }
+
+      .mini-card-value {
+        font-size: 24px;
+        font-weight: 600;
+        letter-spacing: -0.035em;
+      }
+
+      .mini-card-copy {
+        margin-top: 8px;
+        color: var(--ds-secondary);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .reward .mini-card-copy {
+        color: rgb(255 255 255 / 80%);
+      }
+
+      .badge-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .demo-badge {
+        display: inline-flex;
+        min-height: 28px;
+        align-items: center;
+        border-radius: 999px;
+        padding: 0 10px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .demo-badge.accent { background: var(--ds-accent-muted); color: var(--ds-accent-text); }
+      .demo-badge.success { background: var(--ds-success-muted); color: var(--ds-success); }
+      .demo-badge.warning { background: var(--ds-warning-muted); color: var(--ds-warning); }
+      .demo-badge.danger { background: var(--ds-danger-muted); color: var(--ds-danger); }
+      .demo-badge.information { background: var(--ds-information-muted); color: var(--ds-information); }
+
+      .component-tokens {
+        display: grid;
+        gap: 8px;
+        margin-top: 24px;
+        padding-top: 18px;
+        border-top: 1px solid var(--ds-border);
+      }
+
+      .component-token {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        color: var(--ds-muted);
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 10px;
+      }
+
+      .component-token span:last-child {
+        overflow: hidden;
+        color: var(--ds-secondary);
+        text-align: right;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .guidance-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .guidance-card {
+        padding: 24px;
+        border: 1px solid var(--ds-border);
+        border-radius: 16px;
+        background: var(--ds-elevated);
+      }
+
+      .guidance-card h3 {
+        margin-bottom: 20px;
+        font-size: 16px;
+      }
+
+      .guidance-card.do h3 { color: var(--ds-success); }
+      .guidance-card.dont h3 { color: var(--ds-danger); }
+
+      .guidance-list {
+        display: grid;
+        gap: 12px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .guidance-list li {
+        position: relative;
+        padding-left: 18px;
+        color: var(--ds-secondary);
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      .guidance-list li::before {
+        position: absolute;
+        top: 0.62em;
+        left: 0;
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+        background: var(--ds-success);
+        content: "";
+      }
+
+      .dont .guidance-list li::before {
+        background: var(--ds-danger);
+      }
+
+      .raw-details {
+        margin-top: 48px;
+        border: 1px solid var(--ds-border);
+        border-radius: 16px;
+        background: var(--ds-elevated);
+      }
+
+      .raw-details summary {
+        padding: 18px 20px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .raw-source {
+        max-height: 560px;
+        overflow: auto;
+        margin: 0;
+        padding: 20px;
+        border-top: 1px solid var(--ds-border);
+        color: var(--ds-secondary);
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 12px;
+        line-height: 1.65;
+        white-space: pre-wrap;
+      }
+
+      .error-card {
+        max-width: 620px;
+        margin: 80px auto;
+        padding: 28px;
+        border: 1px solid var(--ds-border);
+        border-radius: 16px;
+        background: var(--ds-elevated);
+      }
+
+      @media (max-width: 1040px) {
+        .shell { grid-template-columns: 1fr; }
+        .sidebar {
+          position: relative;
+          z-index: 30;
+          height: auto;
+          flex-direction: row;
+          align-items: center;
+          padding: 14px 18px;
+          border-right: 0;
+          border-bottom: 1px solid var(--ds-border);
+        }
+        .brand { padding: 0; }
+        .brand-version, .sidebar-foot { display: none; }
+        .nav {
+          display: flex;
+          margin-left: auto;
+          overflow-x: auto;
+        }
+        .nav a {
+          min-height: 38px;
+          white-space: nowrap;
+        }
+        .toolbar { top: 69px; }
+        .hero { grid-template-columns: 1fr; }
+        .hero-copy { min-height: 340px; }
+        .hero-art { min-height: 300px; }
+        .color-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      }
+
+      @media (max-width: 760px) {
+        .sidebar { display: block; }
+        .brand { margin-bottom: 12px; }
+        .nav { margin: 0; }
+        .toolbar {
+          top: 112px;
+          align-items: flex-start;
+        }
+        .source-label { display: none; }
+        .main { padding-top: 32px; }
+        .hero { margin-bottom: 48px; }
+        .hero-copy { min-height: 390px; }
+        .section { margin-top: 60px; }
+        .section-head { grid-template-columns: 1fr; gap: 16px; }
+        .color-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .type-row { grid-template-columns: 1fr; gap: 10px; }
+        .type-meta { text-align: left; }
+        .scale-grid,
+        .component-grid,
+        .guidance-grid { grid-template-columns: 1fr; }
+        .specimen.wide { grid-column: auto; }
+        .card-demo-grid { grid-template-columns: 1fr; }
+        .navigation-demo { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      }
+
+      @media (max-width: 480px) {
+        .toolbar { padding-inline: 16px; }
+        .theme-switch button { padding-inline: 8px; }
+        .main { padding-inline: 16px; }
+        .hero-copy { padding: 28px 22px; }
+        .color-grid { grid-template-columns: 1fr; }
+        .radius-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html { scroll-behavior: auto; }
+        *, *::before, *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app" class="loading-screen">
+      <div><span class="loading-dot"></span>Reading DESIGN.md</div>
+    </div>
+
+    <script>
+      const state = {
+        source: "",
+        version: "",
+        design: null,
+        sections: {},
+        theme: localStorage.getItem("design-system-theme") || "system",
+      };
+
+      const colorVarMap = {
+        background: "--ds-background",
+        surface: "--ds-surface",
+        surfaceElevated: "--ds-elevated",
+        surfaceSunken: "--ds-sunken",
+        textPrimary: "--ds-text",
+        textSecondary: "--ds-secondary",
+        textMuted: "--ds-muted",
+        textDisabled: "--ds-disabled",
+        borderSubtle: "--ds-border",
+        borderStrong: "--ds-border-strong",
+        accent: "--ds-accent",
+        accentBright: "--ds-accent-bright",
+        accentWarm: "--ds-accent-warm",
+        accentMuted: "--ds-accent-muted",
+        accentText: "--ds-accent-text",
+        controlStrong: "--ds-control",
+        onControlStrong: "--ds-on-control",
+        focusRing: "--ds-focus",
+        success: "--ds-success",
+        successMuted: "--ds-success-muted",
+        warning: "--ds-warning",
+        warningMuted: "--ds-warning-muted",
+        danger: "--ds-danger",
+        dangerMuted: "--ds-danger-muted",
+        information: "--ds-information",
+        informationMuted: "--ds-information-muted",
+      };
+
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      function parseScalar(raw) {
+        const value = raw.trim();
+        if (
+          (value.startsWith('"') && value.endsWith('"')) ||
+          (value.startsWith("'") && value.endsWith("'"))
+        ) {
+          return value.slice(1, -1);
+        }
+        if (value === "true") return true;
+        if (value === "false") return false;
+        if (/^-?\d+(\.\d+)?$/.test(value)) return Number(value);
+        return value;
+      }
+
+      function parseFrontmatter(source) {
+        const match = source.match(/^---\s*\n([\s\S]*?)\n---\s*\n?/);
+        if (!match) return { data: {}, body: source };
+
+        const root = {};
+        const stack = [{ indent: -1, value: root }];
+
+        for (const line of match[1].split("\n")) {
+          if (!line.trim() || line.trimStart().startsWith("#")) continue;
+          const indent = line.match(/^\s*/)[0].length;
+          const pair = line.trim().match(/^([^:]+):(.*)$/);
+          if (!pair) continue;
+
+          while (stack.length > 1 && indent <= stack.at(-1).indent) stack.pop();
+          const parent = stack.at(-1).value;
+          const key = pair[1].trim();
+          const rawValue = pair[2].trim();
+
+          if (!rawValue) {
+            parent[key] = {};
+            stack.push({ indent, value: parent[key] });
+          } else {
+            parent[key] = parseScalar(rawValue);
+          }
+        }
+
+        return { data: root, body: source.slice(match[0].length) };
+      }
+
+      function parseMarkdownSections(body) {
+        const sections = {};
+        const headings = [...body.matchAll(/^##\s+(.+)$/gm)];
+        headings.forEach((heading, index) => {
+          const title = heading[1].trim();
+          const start = heading.index + heading[0].length;
+          const end = headings[index + 1]?.index ?? body.length;
+          sections[title] = body.slice(start, end).trim();
+        });
+        return sections;
+      }
+
+      function stripInline(text) {
+        return text
+          .replace(/`([^`]+)`/g, "$1")
+          .replace(/\*\*([^*]+)\*\*/g, "$1")
+          .replace(/\*([^*]+)\*/g, "$1");
+      }
+
+      function firstParagraph(markdown, fallback = "") {
+        const paragraph = markdown
+          .split(/\n\s*\n/)
+          .map((part) => part.trim())
+          .find((part) => part && !part.startsWith("#") && !part.startsWith("-"));
+        return stripInline(paragraph || fallback);
+      }
+
+      function subsection(markdown, heading) {
+        const expression = new RegExp(
+          `^###\\s+${heading.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&")}\\s*$([\\s\\S]*?)(?=^###\\s+|$)`,
+          "m"
+        );
+        return markdown.match(expression)?.[1]?.trim() || "";
+      }
+
+      function listItems(markdown) {
+        return markdown
+          .split("\n")
+          .filter((line) => /^-\s+/.test(line.trim()))
+          .map((line) => stripInline(line.trim().replace(/^-\s+/, "")));
+      }
+
+      function resolveToken(value, design, dark = false) {
+        if (typeof value !== "string") return value;
+        return value.replace(/\{([^}]+)\}/g, (_, path) => {
+          const parts = path.split(".");
+          if (dark && parts[0] === "colors" && design.darkColors?.[parts[1]]) {
+            return design.darkColors[parts[1]];
+          }
+          return parts.reduce((current, part) => current?.[part], design) ?? `{${path}}`;
+        });
+      }
+
+      function applyTheme() {
+        const systemDark = matchMedia("(prefers-color-scheme: dark)").matches;
+        const dark = state.theme === "dark" || (state.theme === "system" && systemDark);
+        document.documentElement.dataset.theme = dark ? "dark" : "light";
+        document.documentElement.style.colorScheme = dark ? "dark" : "light";
+
+        const palette = dark
+          ? { ...(state.design?.colors || {}), ...(state.design?.darkColors || {}) }
+          : state.design?.colors || {};
+
+        Object.entries(colorVarMap).forEach(([token, variable]) => {
+          if (palette[token]) document.documentElement.style.setProperty(variable, palette[token]);
+        });
+
+        document.querySelectorAll("[data-theme-choice]").forEach((button) => {
+          button.setAttribute("aria-pressed", String(button.dataset.themeChoice === state.theme));
+        });
+      }
+
+      function setTheme(theme) {
+        state.theme = theme;
+        localStorage.setItem("design-system-theme", theme);
+        applyTheme();
+      }
+
+      function colorSwatches(colors) {
+        return Object.entries(colors || {})
+          .filter(([, value]) => typeof value === "string" && /^(#|rgb)/i.test(value))
+          .map(
+            ([name, value]) => `
+              <article class="swatch">
+                <div class="swatch-color" style="background:${escapeHtml(value)}"></div>
+                <div class="swatch-meta">
+                  <div class="swatch-name">${escapeHtml(name)}</div>
+                  <div class="swatch-value">${escapeHtml(value)}</div>
+                </div>
+              </article>`
+          )
+          .join("");
+      }
+
+      function typographyRows(typography) {
+        const sampleByToken = {
+          "display-lg": "Quietly expressive",
+          "heading-lg": "Designed for clarity",
+          "heading-md": "A softer hierarchy",
+          "body-lg": "Approachable utility, carefully made.",
+          "body-md": "Routine work should feel calm and direct.",
+          "body-sm": "Supporting context remains easy to scan.",
+          "label-md": "Selected route",
+          caption: "ARRIVING IN 4 MIN",
+        };
+
+        return Object.entries(typography || {})
+          .map(([name, token]) => {
+            const style = [
+              `font-family:${token.fontFamily || "inherit"}`,
+              `font-size:${token.fontSize || "1rem"}`,
+              `font-weight:${token.fontWeight || 400}`,
+              `line-height:${token.lineHeight || 1.5}`,
+              `letter-spacing:${token.letterSpacing || "0"}`,
+            ].join(";");
+            return `
+              <div class="type-row">
+                <div class="type-token">${escapeHtml(name)}</div>
+                <div class="type-sample" style="${escapeHtml(style)}">${escapeHtml(sampleByToken[name] || "Soft Signal")}</div>
+                <div class="type-meta">${escapeHtml(token.fontSize)} / ${escapeHtml(token.lineHeight)} · ${escapeHtml(token.fontWeight)}</div>
+              </div>`;
+          })
+          .join("");
+      }
+
+      function spacingRows(spacing) {
+        const max = Math.max(...Object.values(spacing || {}).map((value) => parseFloat(value) || 0), 1);
+        return Object.entries(spacing || {})
+          .map(([name, value]) => {
+            const width = Math.max(8, ((parseFloat(value) || 0) / max) * 100);
+            return `
+              <div class="spacing-row">
+                <strong>${escapeHtml(name)}</strong>
+                <div class="spacing-bar" style="width:${width}%"></div>
+                <span>${escapeHtml(value)}</span>
+              </div>`;
+          })
+          .join("");
+      }
+
+      function radiusRows(rounded) {
+        return Object.entries(rounded || {})
+          .map(
+            ([name, value]) => `
+              <div class="radius-token">
+                <div class="radius-shape" style="border-radius:${escapeHtml(value)}"></div>
+                <div class="radius-label"><strong>${escapeHtml(name)}</strong><br>${escapeHtml(value)}</div>
+              </div>`
+          )
+          .join("");
+      }
+
+      function tokenSummary(component) {
+        return Object.entries(component || {})
+          .slice(0, 6)
+          .map(
+            ([key, value]) => `
+              <div class="component-token">
+                <span>${escapeHtml(key)}</span>
+                <span>${escapeHtml(value)}</span>
+              </div>`
+          )
+          .join("");
+      }
+
+      function specimenCard(title, note, content, component, wide = false) {
+        return `
+          <article class="specimen${wide ? " wide" : ""}">
+            <div class="specimen-title">${escapeHtml(title)}</div>
+            <p class="specimen-note">${escapeHtml(note)}</p>
+            ${content}
+            <div class="component-tokens">${tokenSummary(component)}</div>
+          </article>`;
+      }
+
+      function componentSpecimens(components, design) {
+        const buttons = specimenCard(
+          "Buttons",
+          "Routine actions stay dark and precise; accent is saved for meaningful moments.",
+          `<div class="button-row">
+            <button class="demo-button primary">Continue</button>
+            <button class="demo-button secondary">Preview</button>
+            <button class="demo-button accent">Celebrate</button>
+            <button class="demo-button" disabled>Unavailable</button>
+          </div>`,
+          components["button-primary"]
+        );
+
+        const inputs = specimenCard(
+          "Inputs",
+          "Substantial controls with quiet fills and an explicit focus ring.",
+          `<div class="input-stack">
+            <label class="input-label">Route name<input class="demo-input" value="Lakeshore West" /></label>
+            <label class="input-label">Stop number<input class="demo-input" placeholder="Enter a stop" /></label>
+          </div>`,
+          components.input
+        );
+
+        const navigation = specimenCard(
+          "Raised Tile navigation",
+          "Selection uses lift, outline, and weight—never a colored rail or icon.",
+          `<div class="navigation-demo">
+            <button class="nav-demo-item selected">Overview</button>
+            <button class="nav-demo-item">Routes</button>
+            <button class="nav-demo-item">Stops</button>
+            <button class="nav-demo-item">Settings</button>
+          </div>`,
+          components["navigation-item-selected"],
+          true
+        );
+
+        const cards = specimenCard(
+          "Cards & elevation",
+          "Most surfaces rely on contrast and borders. Shadows appear only where depth matters.",
+          `<div class="card-demo-grid">
+            <div class="mini-card">
+              <div class="mini-card-kicker">Static card</div>
+              <div class="mini-card-value">12 min</div>
+              <div class="mini-card-copy">Subtle outline, no shadow.</div>
+            </div>
+            <div class="mini-card floating">
+              <div class="mini-card-kicker">Floating card</div>
+              <div class="mini-card-value">On time</div>
+              <div class="mini-card-copy">Diffused depth for lifted content.</div>
+            </div>
+            <div class="mini-card reward">
+              <div class="mini-card-kicker">Reward moment</div>
+              <div class="mini-card-value">Week complete</div>
+              <div class="mini-card-copy">One celebratory surface per view.</div>
+            </div>
+          </div>`,
+          components.card,
+          true
+        );
+
+        const badges = specimenCard(
+          "Badges & status",
+          "Compact, semantic, and always paired with a readable label.",
+          `<div class="badge-row">
+            <span class="demo-badge accent">Premium</span>
+            <span class="demo-badge success">On time</span>
+            <span class="demo-badge warning">Delayed</span>
+            <span class="demo-badge danger">Cancelled</span>
+            <span class="demo-badge information">Updated</span>
+          </div>`,
+          components.badge
+        );
+
+        const list = specimenCard(
+          "List rows",
+          "Comfortable rhythm, aligned metadata, and a generous target size.",
+          `<div style="display:grid;overflow:hidden;border:1px solid var(--ds-border);border-radius:12px">
+            ${["Rebecca St", "Trafalgar Rd", "Oakville GO"].map((name, index) => `
+              <div style="display:flex;min-height:64px;align-items:center;justify-content:space-between;gap:16px;padding:0 16px;${index ? "border-top:1px solid var(--ds-border)" : ""}">
+                <div><strong style="font-size:14px">${name}</strong><div style="margin-top:3px;color:var(--ds-muted);font-size:12px">Route 14 East</div></div>
+                <strong style="font-variant-numeric:tabular-nums;font-size:14px">${[4, 11, 18][index]} min</strong>
+              </div>`).join("")}
+          </div>`,
+          components["list-item"]
+        );
+
+        return buttons + inputs + navigation + cards + badges + list;
+      }
+
+      function guidanceLists(section) {
+        const dos = listItems(subsection(section, "Do"));
+        const donts = listItems(subsection(section, "Don't"));
+        const list = (items) => items.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+        return `
+          <div class="guidance-grid">
+            <article class="guidance-card do">
+              <h3>Do</h3>
+              <ul class="guidance-list">${list(dos)}</ul>
+            </article>
+            <article class="guidance-card dont">
+              <h3>Don’t</h3>
+              <ul class="guidance-list">${list(donts)}</ul>
+            </article>
+          </div>`;
+      }
+
+      function render() {
+        const design = state.design;
+        const sections = state.sections;
+        const overview = firstParagraph(sections.Overview, design.description);
+        const colorsIntro = firstParagraph(sections.Colors, "A warm neutral foundation with restrained accent color.");
+        const typographyIntro = firstParagraph(sections.Typography, "A compact, friendly typographic hierarchy.");
+        const layoutIntro = firstParagraph(sections.Layout, "Responsive layouts use generous space and shared edges.");
+        const componentIntro = firstParagraph(sections.Components, "Reusable components express the system in practical states.");
+
+        document.title = `${design.name || "Design System"} · Design System`;
+        document.getElementById("app").className = "";
+        document.getElementById("app").innerHTML = `
+          <div class="shell">
+            <aside class="sidebar">
+              <a class="brand" href="#overview">
+                <span class="brand-mark">S</span>
+                <span>
+                  <div class="brand-name">${escapeHtml(design.name || "Design System")}</div>
+                  <div class="brand-version">${escapeHtml(design.version || "live source")}</div>
+                </span>
+              </a>
+              <nav class="nav" aria-label="Design system sections">
+                <a class="active" href="#overview">Overview</a>
+                <a href="#colors">Colors</a>
+                <a href="#typography">Typography</a>
+                <a href="#foundations">Foundations</a>
+                <a href="#components">Components</a>
+                <a href="#guidance">Guidance</a>
+              </nav>
+              <div class="sidebar-foot">
+                <div class="sync-state" id="sync-state">
+                  <span class="sync-pip"></span>
+                  <span id="sync-copy">Watching DESIGN.md</span>
+                </div>
+              </div>
+            </aside>
+
+            <div class="content">
+              <header class="toolbar">
+                <div class="source-label">Source of truth: <strong>DESIGN.md</strong></div>
+                <div class="toolbar-actions">
+                  <div class="theme-switch" aria-label="Theme">
+                    ${["light", "dark", "system"].map((theme) => `
+                      <button data-theme-choice="${theme}" aria-pressed="${state.theme === theme}" onclick="setTheme('${theme}')">
+                        ${theme[0].toUpperCase() + theme.slice(1)}
+                      </button>`).join("")}
+                  </div>
+                </div>
+              </header>
+
+              <main class="main">
+                <section class="hero" id="overview">
+                  <div class="hero-copy">
+                    <div>
+                      <div class="eyebrow">Design system · ${escapeHtml(design.version || "live")}</div>
+                      <h1>${escapeHtml(design.name || "Design System")}</h1>
+                      <p class="hero-description">${escapeHtml(overview)}</p>
+                    </div>
+                    <div class="hero-meta">
+                      <span class="chip">Live from DESIGN.md</span>
+                      <span class="chip neutral">${Object.keys(design.colors || {}).length} color tokens</span>
+                      <span class="chip neutral">${Object.keys(design.components || {}).length} components</span>
+                    </div>
+                  </div>
+                  <div class="hero-art" aria-label="Warm accent gradient specimen">
+                    <div class="hero-orbit one"></div>
+                    <div class="hero-orbit two"></div>
+                    <div class="hero-card">
+                      <div class="hero-card-label">System character</div>
+                      <div class="hero-card-value">Calm before colorful.</div>
+                      <div class="hero-card-line"></div>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="section" id="colors">
+                  <div class="section-head">
+                    <div>
+                      <div class="section-kicker">Foundation 01</div>
+                      <h2>Color</h2>
+                    </div>
+                    <p class="section-intro">${escapeHtml(colorsIntro)}</p>
+                  </div>
+                  <h3 class="subhead">Light palette</h3>
+                  <div class="color-grid">${colorSwatches(design.colors)}</div>
+                  <h3 class="subhead">Dark palette</h3>
+                  <div class="color-grid">${colorSwatches(design.darkColors)}</div>
+                </section>
+
+                <section class="section" id="typography">
+                  <div class="section-head">
+                    <div>
+                      <div class="section-kicker">Foundation 02</div>
+                      <h2>Typography</h2>
+                    </div>
+                    <p class="section-intro">${escapeHtml(typographyIntro)}</p>
+                  </div>
+                  <div class="type-list">${typographyRows(design.typography)}</div>
+                </section>
+
+                <section class="section" id="foundations">
+                  <div class="section-head">
+                    <div>
+                      <div class="section-kicker">Foundation 03</div>
+                      <h2>Space & shape</h2>
+                    </div>
+                    <p class="section-intro">${escapeHtml(layoutIntro)}</p>
+                  </div>
+                  <div class="scale-grid">
+                    <article class="token-panel">
+                      <h3>Spacing scale</h3>
+                      <div class="spacing-list">${spacingRows(design.spacing)}</div>
+                    </article>
+                    <article class="token-panel">
+                      <h3>Corner radius</h3>
+                      <div class="radius-list">${radiusRows(design.rounded)}</div>
+                    </article>
+                  </div>
+                </section>
+
+                <section class="section" id="components">
+                  <div class="section-head">
+                    <div>
+                      <div class="section-kicker">System in use</div>
+                      <h2>Components</h2>
+                    </div>
+                    <p class="section-intro">${escapeHtml(componentIntro)}</p>
+                  </div>
+                  <div class="component-grid">${componentSpecimens(design.components || {}, design)}</div>
+                </section>
+
+                <section class="section" id="guidance">
+                  <div class="section-head">
+                    <div>
+                      <div class="section-kicker">Guardrails</div>
+                      <h2>Do & don’t</h2>
+                    </div>
+                    <p class="section-intro">The clearest expression of ${escapeHtml(design.name || "the system")} comes from restraint: quiet surfaces, precise hierarchy, and one meaningful signal at a time.</p>
+                  </div>
+                  ${guidanceLists(sections["Do's and Don'ts"] || "")}
+                  <details class="raw-details">
+                    <summary>View raw DESIGN.md source</summary>
+                    <pre class="raw-source">${escapeHtml(state.source)}</pre>
+                  </details>
+                </section>
+              </main>
+            </div>
+          </div>`;
+
+        applyTheme();
+        observeSections();
+      }
+
+      function observeSections() {
+        const links = [...document.querySelectorAll(".nav a")];
+        const sections = links
+          .map((link) => document.querySelector(link.getAttribute("href")))
+          .filter(Boolean);
+
+        const observer = new IntersectionObserver(
+          (entries) => {
+            const visible = entries
+              .filter((entry) => entry.isIntersecting)
+              .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+            if (!visible) return;
+            links.forEach((link) => {
+              link.classList.toggle("active", link.getAttribute("href") === `#${visible.target.id}`);
+            });
+          },
+          { rootMargin: "-20% 0px -65% 0px", threshold: [0, 0.1, 0.5] }
+        );
+
+        sections.forEach((section) => observer.observe(section));
+      }
+
+      function showSyncChange() {
+        const status = document.getElementById("sync-state");
+        const copy = document.getElementById("sync-copy");
+        if (!status || !copy) return;
+        status.classList.add("changed");
+        copy.textContent = "Updated just now";
+        setTimeout(() => {
+          status.classList.remove("changed");
+          copy.textContent = "Watching DESIGN.md";
+        }, 2400);
+      }
+
+      async function loadDesign({ initial = false } = {}) {
+        try {
+          const response = await fetch(`/api/design-system?t=${Date.now()}`, { cache: "no-store" });
+          if (!response.ok) throw new Error(`Request failed with ${response.status}`);
+          const payload = await response.json();
+          if (payload.version === state.version) return;
+
+          const previousVersion = state.version;
+          const parsed = parseFrontmatter(payload.source);
+          state.source = payload.source;
+          state.version = payload.version;
+          state.design = parsed.data;
+          state.sections = parseMarkdownSections(parsed.body);
+          render();
+          if (!initial && previousVersion) showSyncChange();
+        } catch (error) {
+          if (initial) {
+            document.getElementById("app").className = "";
+            document.getElementById("app").innerHTML = `
+              <div class="error-card">
+                <h2>Couldn’t read DESIGN.md</h2>
+                <p style="color:var(--ds-secondary);line-height:1.6">Start the Next.js app and open this page through the local server. The design reference endpoint is not available when the HTML file is opened directly.</p>
+                <pre style="color:var(--ds-danger);white-space:pre-wrap">${escapeHtml(error.message)}</pre>
+              </div>`;
+          }
+        }
+      }
+
+      matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+        if (state.theme === "system") applyTheme();
+      });
+
+      loadDesign({ initial: true });
+      setInterval(() => loadDesign(), 1500);
+    </script>
+  </body>
+</html>
