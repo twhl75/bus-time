@@ -246,6 +246,7 @@ export default function BusMap({
   const routeInfoRef = useRef(routeInfo);
   const updateMapDataRef = useRef<(() => void) | null>(null);
   const styleUrlRef = useRef<string | null>(null);
+  const styleReadyRef = useRef(false);
   const stops = useMemo(() => getStops(routeInfo), [routeInfo]);
 
   useEffect(() => {
@@ -274,9 +275,16 @@ export default function BusMap({
     );
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }));
 
-    map.on("load", () => {
+    const handleStyleLoad = () => {
+      styleReadyRef.current = true;
       addMapOverlays(map, getIsDarkThemeSnapshot());
       updateMapDataRef.current?.();
+    };
+
+    map.on("style.load", handleStyleLoad);
+
+    map.on("load", () => {
+      handleStyleLoad();
 
       map.on("click", STOPS_LAYER_ID, (event) => {
         const feature = event.features?.[0];
@@ -310,6 +318,7 @@ export default function BusMap({
       map.remove();
       mapRef.current = null;
       styleUrlRef.current = null;
+      styleReadyRef.current = false;
     };
   }, []);
 
@@ -320,10 +329,7 @@ export default function BusMap({
     const nextStyle = getMapStyle(isDarkTheme);
     if (styleUrlRef.current === nextStyle) return;
 
-    map.once("style.load", () => {
-      addMapOverlays(map, isDarkTheme);
-      updateMapDataRef.current?.();
-    });
+    styleReadyRef.current = false;
     map.setStyle(nextStyle);
     styleUrlRef.current = nextStyle;
   }, [isDarkTheme]);
@@ -333,7 +339,7 @@ export default function BusMap({
     if (!map) return;
 
     const updateMapData = () => {
-      if (!map.isStyleLoaded()) return;
+      if (!styleReadyRef.current) return;
 
       addMapOverlays(map, getIsDarkThemeSnapshot());
 
@@ -416,15 +422,9 @@ export default function BusMap({
 
     updateMapDataRef.current = updateMapData;
 
-    if (map.isStyleLoaded()) {
+    if (styleReadyRef.current) {
       updateMapData();
-    } else {
-      map.once("style.load", updateMapData);
     }
-
-    return () => {
-      map.off("style.load", updateMapData);
-    };
   }, [routeInfo, stops, buses]);
 
   return (
