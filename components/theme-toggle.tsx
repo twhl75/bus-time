@@ -8,6 +8,7 @@ import {
   SelectItem,
   SelectTrigger,
 } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 type ThemeMode = "light" | "dark" | "system";
 
@@ -94,7 +95,11 @@ function applyTheme(mode: ThemeMode) {
   updateFavicons(mode);
 }
 
-export function ThemeToggle() {
+interface ThemeToggleProps {
+  triggerClassName?: string;
+}
+
+export function ThemeToggle({ triggerClassName }: ThemeToggleProps) {
   const mode = useSyncExternalStore(
     subscribeToThemeMode,
     getThemeModeSnapshot,
@@ -125,7 +130,7 @@ export function ThemeToggle() {
     >
       <SelectTrigger
         size="default"
-        className="w-16 justify-between px-3"
+        className={cn("w-16 justify-between px-3", triggerClassName)}
         aria-label={`Theme mode: ${label}`}
         title={`Theme: ${label}`}
       >

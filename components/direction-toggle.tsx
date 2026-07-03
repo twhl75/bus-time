@@ -2,18 +2,21 @@
 
 import { ArrowLeftRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import type { RouteDirection } from "@/lib/route-directions";
 
 interface DirectionToggleProps {
   directions: RouteDirection[];
   value: string | null;
   onValueChange: (value: string) => void;
+  className?: string;
 }
 
 export function DirectionToggle({
   directions,
   value,
   onValueChange,
+  className,
 }: DirectionToggleProps) {
   const currentIndex = Math.max(
     0,
@@ -32,7 +35,7 @@ export function DirectionToggle({
       variant="secondary"
       onClick={() => onValueChange(nextDirection.key)}
       disabled={!canToggle}
-      className="min-w-12 px-0 sm:max-w-52 sm:px-4"
+      className={cn("min-w-12 px-0 sm:max-w-52 sm:px-4", className)}
       aria-label={
         canToggle
           ? `Showing ${currentDirection.label}. Switch to ${nextDirection.label}.`

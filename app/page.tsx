@@ -9,7 +9,6 @@ import { RouteSelector } from "@/components/route-selector";
 import { DirectionToggle } from "@/components/direction-toggle";
 import { BusList } from "@/components/bus-list";
 import { StopPredictions } from "@/components/stop-predictions";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { BusFront, RefreshCw, Route } from "lucide-react";
 import {
@@ -122,9 +121,9 @@ export default function Home() {
         />
       </div>
 
-      <header className="soft-signal-panel absolute top-3 right-3 left-3 z-20 flex items-center gap-2 rounded-xl border border-border bg-card/95 p-2 backdrop-blur-md sm:top-4 sm:right-auto sm:left-4 sm:w-auto sm:gap-3">
+      <header className="absolute top-3 right-3 left-3 z-20 flex flex-wrap items-center gap-2 sm:top-4 sm:right-auto sm:left-4 sm:w-[min(calc(100vw-2rem),720px)] sm:gap-3">
         <span
-          className="relative flex size-12 shrink-0 items-center justify-center rounded-md border border-border bg-card"
+          className="nav-floating-control relative flex size-12 shrink-0 items-center justify-center rounded-full"
           aria-label="Bus Time"
         >
           <Image
@@ -145,11 +144,12 @@ export default function Home() {
           />
         </span>
 
-        <div className="min-w-0 flex-1 sm:w-80 sm:flex-none">
+        <div className="nav-floating-control nav-floating-pill min-w-0 flex-1 sm:w-[22rem] sm:flex-none">
           <RouteSelector
             value={selectedRoute}
             onValueChange={handleRouteChange}
             disabled={loading}
+            triggerClassName="h-12 rounded-full border-transparent bg-transparent px-4 shadow-none hover:bg-transparent focus-visible:bg-transparent"
           />
         </div>
 
@@ -157,6 +157,7 @@ export default function Home() {
           directions={directions}
           value={activeDirection?.key ?? null}
           onValueChange={setSelectedDirection}
+          className="nav-floating-control rounded-full bg-card/95 text-foreground hover:bg-muted sm:max-w-40"
         />
 
         <Button
@@ -164,13 +165,12 @@ export default function Home() {
           size="icon"
           onClick={handleRefresh}
           disabled={!selectedRoute || loading}
+          className="nav-floating-control rounded-full bg-card/95 text-foreground hover:bg-muted disabled:bg-card/80"
           aria-label="Refresh bus positions"
           title="Refresh"
         >
           <RefreshCw className={loading ? "animate-spin" : ""} />
         </Button>
-
-        <ThemeToggle />
       </header>
 
       <aside className="soft-signal-panel absolute right-3 bottom-3 left-3 z-10 flex h-[36vh] flex-col overflow-hidden rounded-2xl border border-border bg-card/95 p-4 backdrop-blur-md lg:top-4 lg:right-4 lg:bottom-4 lg:left-auto lg:h-auto lg:w-[360px] lg:p-5">

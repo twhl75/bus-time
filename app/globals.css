@@ -226,3 +226,127 @@
     0 1px 2px rgb(17 17 17 / 6%),
     0 4px 12px rgb(17 17 17 / 5%);
 }
+
+.nav-floating-control {
+  background: color-mix(in oklab, var(--card) 94%, transparent);
+  border: 1px solid color-mix(in oklab, var(--border) 82%, transparent);
+  box-shadow:
+    0 1px 2px rgb(17 17 17 / 8%),
+    0 8px 24px rgb(17 17 17 / 10%);
+  backdrop-filter: blur(14px);
+}
+
+.nav-floating-pill {
+  border-radius: 9999px;
+}
+
+.dark .nav-floating-control {
+  background: color-mix(in oklab, var(--card) 88%, transparent);
+  border-color: color-mix(in oklab, var(--border) 86%, transparent);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 32%),
+    0 12px 30px rgb(0 0 0 / 34%);
+}
+
+.route-select-content [data-slot="select-scroll-up-button"],
+.route-select-content [data-slot="select-scroll-down-button"] {
+  display: none;
+}
+
+.route-select-content {
+  overflow: hidden;
+}
+
+.route-select-list {
+  scrollbar-width: none;
+}
+
+.route-select-list::-webkit-scrollbar {
+  display: none;
+}
+
+.route-select-content::after {
+  background: linear-gradient(
+    to bottom,
+    rgb(255 255 255 / 0%),
+    color-mix(in oklab, var(--popover) 94%, transparent) 82%,
+    var(--popover)
+  );
+  bottom: 0;
+  content: "";
+  display: block;
+  left: 0;
+  height: 3.75rem;
+  opacity: 1;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  transition: opacity 140ms ease;
+  z-index: 1;
+}
+
+.route-select-content.route-select-content::after {
+  bottom: 0;
+  height: 3.75rem;
+  left: 0;
+  margin-top: 0;
+  position: absolute;
+  right: 0;
+}
+
+.route-select-content-at-bottom::after {
+  opacity: 0;
+}
+
+.route-scroll-hint {
+  align-items: center;
+  background: color-mix(in oklab, var(--card) 94%, transparent);
+  border: 1px solid color-mix(in oklab, var(--border) 78%, transparent);
+  border-radius: 9999px;
+  bottom: 0.95rem;
+  box-shadow:
+    0 1px 2px rgb(17 17 17 / 8%),
+    0 8px 20px rgb(17 17 17 / 14%);
+  color: var(--foreground);
+  display: flex;
+  height: 2rem;
+  justify-content: center;
+  left: 50%;
+  pointer-events: none;
+  position: absolute;
+  transform: translateX(-50%);
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease;
+  width: 2rem;
+  z-index: 3;
+}
+
+.route-select-content-at-bottom .route-scroll-hint {
+  opacity: 0;
+  transform: translateX(-50%) translateY(0.25rem) scale(0.94);
+}
+
+.route-option {
+  animation: route-option-enter 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--route-index) * 18ms);
+  transition:
+    background-color 160ms ease,
+    transform 160ms ease;
+}
+
+.route-option:hover,
+.route-option:focus {
+  transform: translateX(2px);
+}
+
+@keyframes route-option-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
