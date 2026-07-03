@@ -10,7 +10,13 @@ import maplibregl, {
   Marker,
 } from "maplibre-gl";
 import type { FeatureCollection, LineString, Point } from "geojson";
-import type { Bus, RouteInfo, BusStop } from "@/lib/types";
+import type {
+  Bus,
+  RouteInfo,
+  BusStop,
+  RoutePattern,
+  RoutePoint,
+} from "@/lib/types";
 
 import "maplibre-gl/dist/maplibre-gl.css";
 import "./bus-map.css";
@@ -28,6 +34,8 @@ const STOPS_LAYER_ID = "route-stops-circle";
 const BUS_PULSE_SOURCE_ID = "bus-pulses";
 const BUS_PULSE_LAYER_ID = "bus-pulses-circle";
 const THEME_STORAGE_KEY = "theme-preference";
+// Nearby stop points are curb offsets; farther stop points are terminal/turn geometry.
+const ROUTE_STOP_LINE_POINT_THRESHOLD_METERS = 35;
 const EMPTY_LINE_COLLECTION: FeatureCollection<LineString> = {
   type: "FeatureCollection",
   features: [],
@@ -60,6 +68,51 @@ function getStops(routeInfo: RouteInfo | null) {
   }
 
   return stops;
+}
+
+function getPointDistanceMeters(a: RoutePoint, b: RoutePoint) {
+  const earthRadiusMeters = 6371000;
+  const toRadians = (degrees: number) => (degrees * Math.PI) / 180;
+  const latA = toRadians(a.lat);
+  const latB = toRadians(b.lat);
+  const latDelta = toRadians(b.lat - a.lat);
+  const lonDelta = toRadians(b.lon - a.lon);
+  const haversine =
+    Math.sin(latDelta / 2) ** 2 +
+    Math.cos(latA) * Math.cos(latB) * Math.sin(lonDelta / 2) ** 2;
+
+  return (
+    2 *
+    earthRadiusMeters *
+    Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine))
+  );
+}
+
+function shouldIncludeStopInRouteLine(
+  points: RoutePoint[],
+  index: number
+) {
+  const point = points[index];
+  if (!point.stop) return true;
+
+  const previousPoint = points[index - 1];
+  const nextPoint = points[index + 1];
+  if (!previousPoint || !nextPoint) return true;
+
+  return (
+    getPointDistanceMeters(previousPoint, point) >
+      ROUTE_STOP_LINE_POINT_THRESHOLD_METERS ||
+    getPointDistanceMeters(point, nextPoint) >
+      ROUTE_STOP_LINE_POINT_THRESHOLD_METERS
+  );
+}
+
+function getRouteLineCoordinates(pattern: RoutePattern) {
+  const linePoints = pattern.points.filter((_, index) =>
+    shouldIncludeStopInRouteLine(pattern.points, index)
+  );
+
+  return linePoints.map((point) => [point.lon, point.lat]);
 }
 
 function createBusMarkerElement(color: string, label: string) {
@@ -351,14 +404,17 @@ export default function BusMap({
       routeSource?.setData({
         type: "FeatureCollection",
         features:
-          routeInfo?.patterns.map((pattern) => ({
-            type: "Feature",
-            properties: {},
-            geometry: {
-              type: "LineString",
-              coordinates: pattern.points.map((pt) => [pt.lon, pt.lat]),
-            },
-          })) ?? [],
+          routeInfo?.patterns
+            .map((pattern) => getRouteLineCoordinates(pattern))
+            .filter((coordinates) => coordinates.length >= 2)
+            .map((coordinates) => ({
+              type: "Feature",
+              properties: {},
+              geometry: {
+                type: "LineString",
+                coordinates,
+              },
+            })) ?? [],
       });
 
       stopsSource?.setData({

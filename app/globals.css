@@ -175,27 +175,6 @@
   width: 28px;
 }
 
-.maplibregl-ctrl-group {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgb(17 17 17 / 8%);
-  overflow: hidden;
-}
-
-.maplibregl-ctrl-group button {
-  height: 44px !important;
-  width: 44px !important;
-}
-
-.maplibregl-ctrl-group button {
-  background-color: var(--card);
-}
-
-.maplibregl-ctrl-group button + button {
-  border-color: var(--border);
-}
-
 .dark .maplibregl-ctrl-icon {
   filter: invert(1);
 }
@@ -228,12 +207,24 @@
 }
 
 .nav-floating-control {
+  backdrop-filter: blur(14px);
   background: color-mix(in oklab, var(--card) 94%, transparent);
   border: 1px solid color-mix(in oklab, var(--border) 82%, transparent);
   box-shadow:
     0 1px 2px rgb(17 17 17 / 8%),
     0 8px 24px rgb(17 17 17 / 10%);
-  backdrop-filter: blur(14px);
+  transition:
+    background 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.nav-floating-control:not(:disabled):hover {
+  background: var(--muted);
+}
+
+.nav-floating-control:not(:disabled):active {
+  transform: translateY(1px);
 }
 
 .nav-floating-pill {

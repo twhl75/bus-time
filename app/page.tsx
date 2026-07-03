@@ -11,6 +11,7 @@ import { BusList } from "@/components/bus-list";
 import { StopPredictions } from "@/components/stop-predictions";
 import { Button } from "@/components/ui/button";
 import { BusFront, RefreshCw, Route } from "lucide-react";
+import { ROUTES } from "@/lib/routes";
 import {
   filterBusesByDirection,
   filterRouteInfoByDirection,
@@ -61,10 +62,14 @@ export default function Home() {
     const res = await fetch(`/api/route-points?route=${route}`);
     if (res.ok) {
       const data: RouteInfo = await res.json();
-      const defaultDirection = getRouteDirections(data)[0];
+      const routeDetails = ROUTES.find((item) => item.id === route);
+      const routeData = routeDetails
+        ? { ...data, color: routeDetails.color }
+        : data;
+      const defaultDirection = getRouteDirections(routeData)[0];
 
       setSelectedDirection(defaultDirection?.key ?? null);
-      setRouteInfo(data);
+      setRouteInfo(routeData);
     }
   }, []);
 
