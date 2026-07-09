@@ -33,9 +33,10 @@ export function DirectionToggle({
   return (
     <Button
       variant="secondary"
+      size="icon"
       onClick={() => onValueChange(nextDirection.key)}
       disabled={!canToggle}
-      className={cn("min-w-0 px-4 font-normal sm:max-w-52", className)}
+      className={cn("font-normal", className)}
       aria-label={
         canToggle
           ? `Showing ${currentDirection.label}. Switch to ${nextDirection.label}.`
@@ -48,9 +49,6 @@ export function DirectionToggle({
       }
     >
       <ArrowLeftRight />
-      <span className="min-w-0 truncate font-normal" aria-live="polite">
-        Direction
-      </span>
     </Button>
   );
 }
