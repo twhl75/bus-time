@@ -146,6 +146,17 @@ function createBusPopup(bus: Bus) {
   return container;
 }
 
+function collapseInitialAttribution(map: MapLibreMap) {
+  requestAnimationFrame(() => {
+    const attribution = map
+      .getContainer()
+      .querySelector("details.maplibregl-ctrl-attrib.maplibregl-compact");
+
+    attribution?.classList.remove("maplibregl-compact-show");
+    attribution?.removeAttribute("open");
+  });
+}
+
 function fitBounds(
   map: MapLibreMap,
   routeInfo: RouteInfo | null,
@@ -326,6 +337,9 @@ export default function BusMap({
       new maplibregl.AttributionControl({ compact: true }),
       "bottom-right"
     );
+    collapseInitialAttribution(map);
+    map.once("load", () => collapseInitialAttribution(map));
+    map.once("idle", () => collapseInitialAttribution(map));
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }));
 
     const handleStyleLoad = () => {

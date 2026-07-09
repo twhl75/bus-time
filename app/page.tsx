@@ -10,7 +10,7 @@ import { DirectionToggle } from "@/components/direction-toggle";
 import { BusList } from "@/components/bus-list";
 import { StopPredictions } from "@/components/stop-predictions";
 import { Button } from "@/components/ui/button";
-import { BusFront, RefreshCw, Route } from "lucide-react";
+import { ArrowLeftRight, BusFront, RefreshCw, Route } from "lucide-react";
 import { ROUTES } from "@/lib/routes";
 import {
   filterBusesByDirection,
@@ -20,6 +20,22 @@ import {
 import type { Bus, RouteInfo, StopInfo, BusStop } from "@/lib/types";
 
 const BusMap = dynamic(() => import("@/components/bus-map"), { ssr: false });
+
+function getCurrentDirectionLabel(buses: Bus[]) {
+  const directionCounts = new Map<string, number>();
+
+  for (const bus of buses) {
+    const direction = bus.direction.trim();
+    if (!direction) continue;
+
+    directionCounts.set(direction, (directionCounts.get(direction) ?? 0) + 1);
+  }
+
+  return (
+    Array.from(directionCounts.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] ??
+    null
+  );
+}
 
 export default function Home() {
   const [selectedRoute, setSelectedRoute] = useState("");
@@ -48,6 +64,10 @@ export default function Home() {
   const visibleBuses = useMemo(
     () => filterBusesByDirection(buses, activeDirection),
     [buses, activeDirection]
+  );
+  const currentDirectionLabel = useMemo(
+    () => getCurrentDirectionLabel(visibleBuses) ?? activeDirection?.label,
+    [visibleBuses, activeDirection]
   );
 
   const fetchBuses = useCallback(async (route: string) => {
@@ -180,14 +200,33 @@ export default function Home() {
 
       <aside className="soft-signal-panel absolute right-3 bottom-3 left-3 z-10 flex h-[36vh] flex-col overflow-hidden rounded-2xl border border-border bg-card/95 p-4 backdrop-blur-md lg:top-4 lg:right-4 lg:bottom-4 lg:left-auto lg:h-auto lg:w-[360px] lg:p-5">
         <div className="mb-4 flex shrink-0 items-start justify-between gap-3">
-          <div>
+          <div className="min-w-0">
             <h1 className="text-lg font-semibold tracking-[-0.02em]">
               Active buses
             </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {selectedRoute
-                ? `${visibleBuses.length} vehicle${visibleBuses.length === 1 ? "" : "s"} reporting${activeDirection ? ` · ${activeDirection.label}` : ""}`
-                : "Choose a route to begin"}
+            <p className="mt-1 flex min-w-0 flex-col items-start gap-1 text-sm text-muted-foreground sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-1.5 sm:gap-y-1">
+              {selectedRoute ? (
+                <>
+                  <span className="flex items-center gap-1.5">
+                    <BusFront className="size-3.5 shrink-0" />
+                    <span>
+                      {visibleBuses.length} vehicle
+                      {visibleBuses.length === 1 ? "" : "s"} reporting
+                    </span>
+                  </span>
+                  {currentDirectionLabel ? (
+                    <span className="flex w-full min-w-0 items-center gap-1.5 sm:w-auto">
+                      <span className="hidden sm:inline" aria-hidden="true">
+                        ·
+                      </span>
+                      <ArrowLeftRight className="size-3.5 shrink-0" />
+                      <span className="truncate">{currentDirectionLabel}</span>
+                    </span>
+                  ) : null}
+                </>
+              ) : (
+                "Choose a route to begin"
+              )}
             </p>
           </div>
           <span className="flex size-10 items-center justify-center rounded-md bg-muted">
