@@ -1,6 +1,12 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import {
+  useState,
+  useCallback,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+} from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import logoDark from "@/assets/logo-dark.png";
@@ -22,6 +28,8 @@ import type { Bus, RouteInfo, StopInfo, BusStop } from "@/lib/types";
 const BusMap = dynamic(() => import("@/components/bus-map"), { ssr: false });
 
 export default function Home() {
+  const viewportRef = useRef<HTMLElement | null>(null);
+  const headerRef = useRef<HTMLElement | null>(null);
   const [selectedRoute, setSelectedRoute] = useState("");
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
   const [buses, setBuses] = useState<Bus[]>([]);
@@ -116,9 +124,34 @@ export default function Home() {
     []
   );
 
+  useLayoutEffect(() => {
+    const viewport = viewportRef.current;
+    const header = headerRef.current;
+    if (!viewport || !header) return;
+
+    const updateControlPosition = () => {
+      const viewportTop = viewport.getBoundingClientRect().top;
+      const headerBottom = header.getBoundingClientRect().bottom;
+      const top = Math.max(88, Math.ceil(headerBottom - viewportTop + 12));
+
+      viewport.style.setProperty("--map-mobile-controls-top", `${top}px`);
+    };
+
+    updateControlPosition();
+
+    const resizeObserver = new ResizeObserver(updateControlPosition);
+    resizeObserver.observe(header);
+    window.addEventListener("resize", updateControlPosition);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", updateControlPosition);
+    };
+  }, []);
+
   return (
-    <main className="relative h-dvh w-screen overflow-hidden bg-background">
-      <div className="absolute inset-0">
+    <main ref={viewportRef} className="map-viewport">
+      <div className="map-canvas-layer">
         <BusMap
           routeInfo={visibleRouteInfo}
           buses={visibleBuses}
@@ -126,7 +159,10 @@ export default function Home() {
         />
       </div>
 
-      <header className="absolute top-3 right-3 left-3 z-20 flex flex-wrap items-center gap-2 sm:top-4 sm:right-auto sm:left-4 sm:w-[min(calc(100vw-2rem),720px)] sm:gap-3">
+      <header
+        ref={headerRef}
+        className="map-app-header absolute z-20 flex flex-wrap items-center gap-2 sm:gap-3"
+      >
         <span
           className="nav-floating-control relative flex size-12 shrink-0 items-center justify-center rounded-full"
           aria-label="Bus Time"
@@ -178,7 +214,7 @@ export default function Home() {
         </Button>
       </header>
 
-      <aside className="soft-signal-panel absolute right-3 bottom-3 left-3 z-10 flex h-[36vh] flex-col overflow-hidden rounded-2xl border border-border bg-card/95 p-4 backdrop-blur-md lg:top-4 lg:right-4 lg:bottom-4 lg:left-auto lg:h-auto lg:w-[360px] lg:p-5">
+      <aside className="map-app-panel soft-signal-panel absolute z-10 flex h-[36vh] flex-col overflow-hidden rounded-2xl border border-border bg-card/95 p-4 backdrop-blur-md lg:h-auto lg:w-[360px] lg:p-5">
         <div className="mb-4 flex shrink-0 items-start justify-between gap-3">
           <div>
             <h1 className="text-lg font-semibold tracking-[-0.02em]">
