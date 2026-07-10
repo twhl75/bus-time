@@ -120,14 +120,91 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    background: var(--background);
+    min-height: 100%;
+    overscroll-behavior: none;
+  }
   body {
     @apply bg-background text-foreground font-sans;
     letter-spacing: -0.005em;
+    min-height: 100%;
+    overflow-x: hidden;
   }
   button,
   [role="button"],
   [role="combobox"] {
     cursor: pointer;
+  }
+}
+
+.map-viewport {
+  --map-browser-bottom-overscan: 160px;
+  --map-mobile-controls-top: 88px;
+
+  background: var(--background);
+  height: 100vh;
+  overflow: visible;
+  position: relative;
+  width: 100vw;
+}
+
+@supports (height: 100dvh) {
+  .map-viewport {
+    height: 100dvh;
+  }
+}
+
+.map-canvas-layer {
+  bottom: calc(-1 * var(--map-browser-bottom-overscan));
+  left: calc(-1 * env(safe-area-inset-left, 0px));
+  position: absolute;
+  right: calc(-1 * env(safe-area-inset-right, 0px));
+  top: 0;
+}
+
+@supports (bottom: min(0px, 1px)) {
+  .map-canvas-layer {
+    bottom: min(
+      calc(-1 * env(safe-area-inset-bottom, 0px)),
+      calc(-1 * var(--map-browser-bottom-overscan))
+    );
+  }
+}
+
+.map-app-header {
+  left: calc(env(safe-area-inset-left, 0px) + 0.75rem);
+  right: calc(env(safe-area-inset-right, 0px) + 0.75rem);
+  top: calc(env(safe-area-inset-top, 0px) + 0.75rem);
+}
+
+.map-app-panel {
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 0.75rem);
+  left: calc(env(safe-area-inset-left, 0px) + 0.75rem);
+  right: calc(env(safe-area-inset-right, 0px) + 0.75rem);
+}
+
+@media (min-width: 640px) {
+  .map-app-header {
+    left: calc(env(safe-area-inset-left, 0px) + 1rem);
+    right: auto;
+    top: calc(env(safe-area-inset-top, 0px) + 1rem);
+    width: min(
+      calc(
+        100vw - env(safe-area-inset-left, 0px) -
+          env(safe-area-inset-right, 0px) - 2rem
+      ),
+      720px
+    );
+  }
+}
+
+@media (min-width: 1024px) {
+  .map-app-panel {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 1rem);
+    left: auto;
+    right: calc(env(safe-area-inset-right, 0px) + 1rem);
+    top: calc(env(safe-area-inset-top, 0px) + 1rem);
   }
 }
 
