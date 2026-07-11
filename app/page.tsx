@@ -3,6 +3,7 @@
 import {
   useState,
   useCallback,
+  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -16,7 +17,12 @@ import { DirectionToggle } from "@/components/direction-toggle";
 import { BusList } from "@/components/bus-list";
 import { StopPredictions } from "@/components/stop-predictions";
 import { Button } from "@/components/ui/button";
-import { ArrowLeftRight, BusFront, RefreshCw, Route } from "lucide-react";
+import {
+  ArrowLeftRight,
+  BusFront,
+  RefreshCw,
+  Route,
+} from "lucide-react";
 import { ROUTES } from "@/lib/routes";
 import {
   filterBusesByDirection,
@@ -46,10 +52,22 @@ function getCurrentDirectionLabel(buses: Bus[]) {
 export default function Home() {
   const viewportRef = useRef<HTMLElement | null>(null);
   const headerRef = useRef<HTMLElement | null>(null);
+  const busDrawerRef = useRef<HTMLElement | null>(null);
+  const busDrawerContentRef = useRef<HTMLDivElement | null>(null);
+  const busDrawerDragRef = useRef<{
+    pointerId: number;
+    startY: number;
+    startHeight: number;
+    minHeight: number;
+    maxHeight: number;
+  } | null>(null);
   const [selectedRoute, setSelectedRoute] = useState("");
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
   const [buses, setBuses] = useState<Bus[]>([]);
   const [loading, setLoading] = useState(false);
+  const [busDrawerOpen, setBusDrawerOpen] = useState(false);
+  const [busDrawerContentScrollable, setBusDrawerContentScrollable] =
+    useState(false);
   const [selectedDirection, setSelectedDirection] = useState<string | null>(
     null
   );
@@ -124,6 +142,82 @@ export default function Home() {
     }
   }, [selectedRoute, fetchBuses]);
 
+  const handleDrawerPointerDown = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      const viewport = viewportRef.current;
+      const drawer = busDrawerRef.current;
+      if (!viewport || !drawer || window.innerWidth >= 1024) return;
+
+      const styles = getComputedStyle(viewport);
+      const minHeight = Number.parseFloat(
+        styles.getPropertyValue("--active-buses-drawer-collapsed-height")
+      );
+      const maxHeight = Math.max(
+        minHeight,
+        viewport.getBoundingClientRect().height * 0.36
+      );
+
+      busDrawerDragRef.current = {
+        pointerId: event.pointerId,
+        startY: event.clientY,
+        startHeight: drawer.getBoundingClientRect().height,
+        minHeight,
+        maxHeight,
+      };
+      drawer.dataset.dragging = "true";
+      event.currentTarget.setPointerCapture(event.pointerId);
+    },
+    []
+  );
+
+  const handleDrawerPointerMove = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      const drag = busDrawerDragRef.current;
+      const drawer = busDrawerRef.current;
+      const viewport = viewportRef.current;
+      if (
+        !drag ||
+        !drawer ||
+        !viewport ||
+        drag.pointerId !== event.pointerId
+      )
+        return;
+
+      const nextHeight = Math.min(
+        drag.maxHeight,
+        Math.max(drag.minHeight, drag.startHeight - (event.clientY - drag.startY))
+      );
+      viewport.style.setProperty("--active-buses-drawer-height", `${nextHeight}px`);
+    },
+    []
+  );
+
+  const finishDrawerDrag = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      const drag = busDrawerDragRef.current;
+      const drawer = busDrawerRef.current;
+      const viewport = viewportRef.current;
+      if (
+        !drag ||
+        !drawer ||
+        !viewport ||
+        drag.pointerId !== event.pointerId
+      )
+        return;
+
+      const currentHeight = drawer.getBoundingClientRect().height;
+      const midpoint = (drag.minHeight + drag.maxHeight) / 2;
+      setBusDrawerOpen(currentHeight >= midpoint);
+      busDrawerDragRef.current = null;
+      drawer.dataset.dragging = "false";
+
+      requestAnimationFrame(() => {
+        viewport.style.removeProperty("--active-buses-drawer-height");
+      });
+    },
+    []
+  );
+
   const handleStopClick = useCallback(
     async (stop: BusStop, routeId: string) => {
       setStopSheetOpen(true);
@@ -169,8 +263,130 @@ export default function Home() {
     };
   }, []);
 
+  useEffect(() => {
+    const drawer = busDrawerRef.current;
+    if (!drawer) return;
+
+    let lastTouchY: number | null = null;
+
+    const handleTouchStart = (event: TouchEvent) => {
+      lastTouchY = event.touches[0]?.clientY ?? null;
+    };
+
+    const handleTouchMove = (event: TouchEvent) => {
+      const touchY = event.touches[0]?.clientY;
+      if (touchY === undefined || lastTouchY === null) return;
+
+      const deltaY = touchY - lastTouchY;
+      lastTouchY = touchY;
+      const target = event.target;
+      const scrollArea =
+        target instanceof Element
+          ? (target.closest("#active-buses-content") as HTMLElement | null)
+          : null;
+
+      if (!scrollArea) {
+        event.preventDefault();
+        return;
+      }
+
+      const hasOverflow = scrollArea.scrollHeight > scrollArea.clientHeight + 1;
+      const isAtTop = scrollArea.scrollTop <= 0;
+      const isAtBottom =
+        scrollArea.scrollTop + scrollArea.clientHeight >=
+        scrollArea.scrollHeight - 1;
+
+      if (
+        !hasOverflow ||
+        (deltaY > 0 && isAtTop) ||
+        (deltaY < 0 && isAtBottom)
+      ) {
+        event.preventDefault();
+      }
+    };
+
+    const handleTouchEnd = () => {
+      lastTouchY = null;
+    };
+
+    const handleWheel = (event: WheelEvent) => {
+      const target = event.target;
+      const scrollArea =
+        target instanceof Element
+          ? (target.closest("#active-buses-content") as HTMLElement | null)
+          : null;
+
+      if (!scrollArea) {
+        event.preventDefault();
+        return;
+      }
+
+      const hasOverflow = scrollArea.scrollHeight > scrollArea.clientHeight + 1;
+      const isAtTop = scrollArea.scrollTop <= 0;
+      const isAtBottom =
+        scrollArea.scrollTop + scrollArea.clientHeight >=
+        scrollArea.scrollHeight - 1;
+
+      if (
+        !hasOverflow ||
+        (event.deltaY < 0 && isAtTop) ||
+        (event.deltaY > 0 && isAtBottom)
+      ) {
+        event.preventDefault();
+      }
+    };
+
+    drawer.addEventListener("touchstart", handleTouchStart, { passive: true });
+    drawer.addEventListener("touchmove", handleTouchMove, { passive: false });
+    drawer.addEventListener("touchend", handleTouchEnd);
+    drawer.addEventListener("touchcancel", handleTouchEnd);
+    drawer.addEventListener("wheel", handleWheel, { passive: false });
+
+    return () => {
+      drawer.removeEventListener("touchstart", handleTouchStart);
+      drawer.removeEventListener("touchmove", handleTouchMove);
+      drawer.removeEventListener("touchend", handleTouchEnd);
+      drawer.removeEventListener("touchcancel", handleTouchEnd);
+      drawer.removeEventListener("wheel", handleWheel);
+    };
+  }, []);
+
+  useEffect(() => {
+    const lockViewportScroll = () => {
+      if (window.scrollX !== 0 || window.scrollY !== 0) {
+        window.scrollTo(0, 0);
+      }
+    };
+
+    window.addEventListener("scroll", lockViewportScroll, { passive: true });
+
+    return () => window.removeEventListener("scroll", lockViewportScroll);
+  }, []);
+
+  useLayoutEffect(() => {
+    const content = busDrawerContentRef.current;
+    if (!content) return;
+
+    const updateScrollable = () => {
+      setBusDrawerContentScrollable(
+        content.scrollHeight > content.clientHeight + 1
+      );
+    };
+
+    updateScrollable();
+    const resizeObserver = new ResizeObserver(updateScrollable);
+    resizeObserver.observe(content);
+
+    return () => resizeObserver.disconnect();
+  }, [busDrawerOpen, loading, selectedRoute, visibleBuses]);
+
   return (
-    <main ref={viewportRef} className="map-viewport">
+    <main
+      ref={viewportRef}
+      className="map-viewport"
+      data-bus-drawer-open={busDrawerOpen}
+      style={{ inset: 0, position: "fixed" }}
+    >
       <div className="map-canvas-layer">
         <BusMap
           routeInfo={visibleRouteInfo}
@@ -234,8 +450,28 @@ export default function Home() {
         </Button>
       </header>
 
-      <aside className="map-app-panel soft-signal-panel absolute z-10 flex h-[36vh] flex-col overflow-hidden rounded-2xl border border-border bg-card/95 p-4 backdrop-blur-md lg:h-auto lg:w-[360px] lg:p-5">
-        <div className="mb-4 flex shrink-0 items-start justify-between gap-3">
+      <aside
+        ref={busDrawerRef}
+        className="map-app-panel active-buses-drawer soft-signal-panel absolute z-10 flex flex-col overflow-hidden rounded-2xl border border-border bg-card/95 p-4 backdrop-blur-md lg:w-[360px] lg:p-5"
+        aria-label="Active buses"
+      >
+        <div
+          className="drawer-pull-handle absolute inset-x-0 top-0 flex h-6 items-center justify-center lg:hidden"
+          onPointerDown={handleDrawerPointerDown}
+          onPointerMove={handleDrawerPointerMove}
+          onPointerUp={finishDrawerDrag}
+          onPointerCancel={finishDrawerDrag}
+          role="separator"
+          aria-orientation="horizontal"
+          aria-label="Resize active buses drawer"
+        >
+          <span className="h-1 w-10 rounded-full bg-border" aria-hidden="true" />
+        </div>
+
+        <div
+          className="active-buses-drawer-header mb-4 mt-2 flex shrink-0 items-start justify-between gap-3 lg:mt-0"
+          style={{ touchAction: "none" }}
+        >
           <div className="min-w-0">
             <h1 className="text-lg font-semibold tracking-[-0.02em]">
               Active buses
@@ -265,12 +501,15 @@ export default function Home() {
               )}
             </p>
           </div>
-          <span className="flex size-10 items-center justify-center rounded-md bg-muted">
-            <BusFront className="size-5" />
-          </span>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto">
+        <div
+          ref={busDrawerContentRef}
+          id="active-buses-content"
+          className="active-buses-drawer-content min-h-0 flex-1 overflow-y-auto"
+          data-scrollable={busDrawerContentScrollable}
+          style={{ touchAction: busDrawerContentScrollable ? "pan-y" : "none" }}
+        >
           {!selectedRoute ? (
             <div className="flex min-h-36 flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border px-6 text-center sm:min-h-48">
               <Route className="size-6 text-muted-foreground" />
