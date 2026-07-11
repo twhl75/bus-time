@@ -19,7 +19,6 @@ import type {
 } from "@/lib/types";
 
 import "maplibre-gl/dist/maplibre-gl.css";
-import "./bus-map.css";
 
 const OPENFREEMAP_STYLE_BY_THEME = {
   light: "https://tiles.openfreemap.org/styles/positron",
@@ -144,17 +143,6 @@ function createBusPopup(bus: Bus) {
   container.append(title, direction, destination);
 
   return container;
-}
-
-function collapseInitialAttribution(map: MapLibreMap) {
-  requestAnimationFrame(() => {
-    const attribution = map
-      .getContainer()
-      .querySelector("details.maplibregl-ctrl-attrib.maplibregl-compact");
-
-    attribution?.classList.remove("maplibregl-compact-show");
-    attribution?.removeAttribute("open");
-  });
 }
 
 function fitBounds(
@@ -333,14 +321,6 @@ export default function BusMap({
       attributionControl: false,
     });
     styleUrlRef.current = initialStyle;
-    map.addControl(
-      new maplibregl.AttributionControl({ compact: true }),
-      "bottom-right"
-    );
-    collapseInitialAttribution(map);
-    map.once("load", () => collapseInitialAttribution(map));
-    map.once("idle", () => collapseInitialAttribution(map));
-    map.addControl(new maplibregl.NavigationControl({ showCompass: false }));
 
     const handleStyleLoad = () => {
       styleReadyRef.current = true;
