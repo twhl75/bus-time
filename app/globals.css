@@ -282,7 +282,7 @@
     height: auto;
   }
 
-  .active-buses-drawer-content {
+  .map-viewport[data-bus-drawer-open="false"] .active-buses-drawer-content {
     opacity: 1;
     pointer-events: auto;
   }
