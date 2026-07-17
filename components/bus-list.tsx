@@ -37,7 +37,7 @@ export function BusList({
   }
 
   return (
-    <div className="rounded-lg bg-card py-1">
+    <div className="rounded-lg py-1">
       {buses.map((bus, index) => {
         const selected = selectedBusId === bus.id;
         const position = getBusPositionLabel(bus, routeInfo);

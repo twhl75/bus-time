@@ -102,10 +102,6 @@ function createTerminusMarkerElement(
   );
   marker.setAttribute("role", "note");
 
-  const leader = document.createElement("span");
-  leader.className = "terminus-label-leader";
-  leader.setAttribute("aria-hidden", "true");
-
   const pill = document.createElement("span");
   pill.className = isDestination
     ? "terminus-label-pill terminus-label-pill-destination"
@@ -126,7 +122,7 @@ function createTerminusMarkerElement(
     pill.append(arrow);
   }
 
-  marker.append(leader, pill);
+  marker.append(pill);
   return marker;
 }
 
