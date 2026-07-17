@@ -27,6 +27,7 @@ import { ROUTES } from "@/lib/routes";
 import {
   filterBusesByDirection,
   filterRouteInfoByDirection,
+  getDirectionTermini,
   getRouteDirections,
 } from "@/lib/route-directions";
 import { getRouteGeometry } from "@/lib/route-geometry";
@@ -59,6 +60,7 @@ export default function Home() {
 
   const [stopInfo, setStopInfo] = useState<StopInfo | null>(null);
   const [stopSheetOpen, setStopSheetOpen] = useState(false);
+  const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
   const [stopLoading, setStopLoading] = useState(false);
 
   const directions = useMemo(() => getRouteDirections(routeInfo), [routeInfo]);
@@ -79,6 +81,10 @@ export default function Home() {
   const visibleBuses = useMemo(
     () => filterBusesByDirection(buses, activeDirection),
     [buses, activeDirection]
+  );
+  const routeTermini = useMemo(
+    () => getDirectionTermini(routeInfo, activeDirection, directions),
+    [routeInfo, activeDirection, directions]
   );
   const currentDirectionLabel = activeDirection?.label;
 
@@ -113,6 +119,7 @@ export default function Home() {
       setRouteInfo(null);
       setSelectedDirection(null);
       setStopSheetOpen(false);
+      setSelectedStopId(null);
       try {
         await Promise.all([fetchRouteInfo(route), fetchBuses(route)]);
       } finally {
@@ -206,6 +213,7 @@ export default function Home() {
 
   const handleStopClick = useCallback(
     async (stop: BusStop, routeId: string) => {
+      setSelectedStopId(stop.id);
       setStopSheetOpen(true);
       setStopLoading(true);
       setStopInfo(null);
@@ -223,6 +231,11 @@ export default function Home() {
     },
     []
   );
+
+  const handleStopSheetOpenChange = useCallback((open: boolean) => {
+    setStopSheetOpen(open);
+    if (!open) setSelectedStopId(null);
+  }, []);
 
   useLayoutEffect(() => {
     const viewport = viewportRef.current;
@@ -377,7 +390,9 @@ export default function Home() {
         <BusMap
           routeInfo={visibleRouteInfo}
           routeLines={visibleRouteLines}
+          termini={routeTermini}
           buses={visibleBuses}
+          selectedStopId={selectedStopId}
           onStopClick={handleStopClick}
         />
       </div>
@@ -521,7 +536,7 @@ export default function Home() {
       <StopPredictions
         stop={stopInfo}
         open={stopSheetOpen}
-        onOpenChange={setStopSheetOpen}
+        onOpenChange={handleStopSheetOpenChange}
         loading={stopLoading}
       />
     </main>
