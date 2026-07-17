@@ -322,27 +322,6 @@
   width: 0;
 }
 
-.terminus-label-leader {
-  background: color-mix(in oklab, var(--border) 90%, var(--foreground));
-  height: 1px;
-  position: absolute;
-  top: -0.5px;
-  width: 12px;
-  z-index: 0;
-}
-
-.terminus-label-marker-destination .terminus-label-leader {
-  background: var(--terminus-route-color);
-}
-
-.terminus-label-marker-right .terminus-label-leader {
-  left: 7px;
-}
-
-.terminus-label-marker-left .terminus-label-leader {
-  right: 7px;
-}
-
 .terminus-label-pill {
   align-items: center;
   backdrop-filter: blur(14px);
