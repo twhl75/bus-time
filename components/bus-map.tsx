@@ -44,6 +44,7 @@ interface BusMapProps {
   routeLines: RouteLine[];
   termini: RouteTermini | null;
   buses: Bus[];
+  selectedBusId?: string | null;
   selectedStopId: string | null;
   onStopClick: (stop: BusStop, routeId: string) => void;
 }
@@ -76,25 +77,6 @@ function createBusMarkerElement(color: string, label: string) {
   );
 
   return marker;
-}
-
-function createBusPopup(bus: Bus) {
-  const container = document.createElement("div");
-  container.className = "text-sm";
-
-  const title = document.createElement("div");
-  title.className = "font-bold";
-  title.textContent = `Bus #${bus.id}`;
-
-  const direction = document.createElement("div");
-  direction.textContent = bus.direction;
-
-  const destination = document.createElement("div");
-  destination.textContent = bus.destination;
-
-  container.append(title, direction, destination);
-
-  return container;
 }
 
 function createTerminusMarkerElement(
@@ -287,6 +269,7 @@ export default function BusMap({
   routeLines,
   termini,
   buses,
+  selectedBusId,
   selectedStopId,
   onStopClick,
 }: BusMapProps) {
@@ -481,11 +464,6 @@ export default function BusMap({
           anchor: "center",
         })
           .setLngLat([bus.lon, bus.lat])
-          .setPopup(
-            new maplibregl.Popup({ offset: 18 }).setDOMContent(
-              createBusPopup(bus)
-            )
-          )
           .addTo(map)
       );
 
@@ -540,6 +518,24 @@ export default function BusMap({
       updateMapData();
     }
   }, [routeInfo, routeLines, termini, stops, buses, selectedStopId]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    if (!selectedBusId) return;
+
+    const selectedIndex = buses.findIndex((bus) => bus.id === selectedBusId);
+    const selectedBus = buses[selectedIndex];
+    const selectedMarker = busMarkersRef.current[selectedIndex];
+    if (!selectedBus || !selectedMarker) return;
+
+    map.easeTo({
+      center: [selectedBus.lon, selectedBus.lat],
+      zoom: Math.max(map.getZoom(), 15),
+      duration: 500,
+    });
+  }, [buses, selectedBusId]);
 
   return (
     <div

@@ -52,6 +52,7 @@ export default function Home() {
   const [buses, setBuses] = useState<Bus[]>([]);
   const [loading, setLoading] = useState(false);
   const [busDrawerOpen, setBusDrawerOpen] = useState(false);
+  const [selectedBusId, setSelectedBusId] = useState<string | null>(null);
   const [busDrawerContentScrollable, setBusDrawerContentScrollable] =
     useState(false);
   const [selectedDirection, setSelectedDirection] = useState<string | null>(
@@ -118,6 +119,8 @@ export default function Home() {
       setBuses([]);
       setRouteInfo(null);
       setSelectedDirection(null);
+      setSelectedBusId(null);
+      setBusDrawerOpen(true);
       setStopSheetOpen(false);
       setSelectedStopId(null);
       try {
@@ -134,6 +137,10 @@ export default function Home() {
       fetchBuses(selectedRoute);
     }
   }, [selectedRoute, fetchBuses]);
+
+  const handleBusSelect = useCallback((bus: Bus) => {
+    setSelectedBusId((current) => (current === bus.id ? null : bus.id));
+  }, []);
 
   const handleDrawerPointerDown = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
@@ -181,6 +188,7 @@ export default function Home() {
         Math.max(drag.minHeight, drag.startHeight - (event.clientY - drag.startY))
       );
       viewport.style.setProperty("--active-buses-drawer-height", `${nextHeight}px`);
+      drawer.dataset.contentRevealed = String(nextHeight > drag.minHeight + 1);
     },
     []
   );
@@ -200,7 +208,9 @@ export default function Home() {
 
       const currentHeight = drawer.getBoundingClientRect().height;
       const midpoint = (drag.minHeight + drag.maxHeight) / 2;
-      setBusDrawerOpen(currentHeight >= midpoint);
+      const nextOpen = currentHeight >= midpoint;
+      drawer.dataset.contentRevealed = String(nextOpen);
+      setBusDrawerOpen(nextOpen);
       busDrawerDragRef.current = null;
       drawer.dataset.dragging = "false";
 
@@ -261,6 +271,12 @@ export default function Home() {
       window.removeEventListener("resize", updateControlPosition);
     };
   }, []);
+
+  useEffect(() => {
+    if (selectedBusId && !visibleBuses.some((bus) => bus.id === selectedBusId)) {
+      setSelectedBusId(null);
+    }
+  }, [selectedBusId, visibleBuses]);
 
   useEffect(() => {
     const drawer = busDrawerRef.current;
@@ -392,6 +408,7 @@ export default function Home() {
           routeLines={visibleRouteLines}
           termini={routeTermini}
           buses={visibleBuses}
+          selectedBusId={selectedBusId}
           selectedStopId={selectedStopId}
           onStopClick={handleStopClick}
         />
@@ -478,7 +495,7 @@ export default function Home() {
             <h1 className="text-lg font-semibold tracking-[-0.02em]">
               Active buses
             </h1>
-            <p className="mt-1 flex min-w-0 flex-col items-start gap-1 text-sm text-muted-foreground sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-1.5 sm:gap-y-1">
+            <p className="mt-1 flex min-w-0 flex-col items-start gap-1 text-sm text-muted-foreground">
               {selectedRoute ? (
                 <>
                   <span className="flex items-center gap-1.5">
@@ -489,10 +506,7 @@ export default function Home() {
                     </span>
                   </span>
                   {currentDirectionLabel ? (
-                    <span className="flex w-full min-w-0 items-center gap-1.5 sm:w-auto">
-                      <span className="hidden sm:inline" aria-hidden="true">
-                        ·
-                      </span>
+                    <span className="flex w-full min-w-0 items-center gap-1.5">
                       <ArrowLeftRight className="size-3.5 shrink-0" />
                       <span className="truncate">{currentDirectionLabel}</span>
                     </span>
@@ -528,7 +542,12 @@ export default function Home() {
               Loading buses…
             </div>
           ) : (
-            <BusList buses={visibleBuses} routeColor={routeInfo?.color} />
+            <BusList
+              buses={visibleBuses}
+              routeInfo={visibleRouteInfo}
+              selectedBusId={selectedBusId}
+              onBusSelect={handleBusSelect}
+            />
           )}
         </div>
       </aside>
