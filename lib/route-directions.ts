@@ -7,6 +7,22 @@ export interface RouteDirection {
   patternIds: string[];
 }
 
+const ROUTE_DIRECTION_DESTINATIONS: Record<string, Record<string, string>> = {
+  "5": {
+    east: "Laird & Winston Churchill",
+    west: "Dundas/Highway 407 GO Carpool",
+  },
+};
+
+function getFirstStopName(pattern: RoutePattern) {
+  for (const point of pattern.points) {
+    const stopName = point.stop?.name.trim();
+    if (stopName) return stopName;
+  }
+
+  return "";
+}
+
 function getLastStopName(pattern: RoutePattern) {
   for (let index = pattern.points.length - 1; index >= 0; index -= 1) {
     const stopName = pattern.points[index].stop?.name.trim();
@@ -14,6 +30,32 @@ function getLastStopName(pattern: RoutePattern) {
   }
 
   return pattern.displayDirection.trim() || pattern.direction.trim();
+}
+
+function getDirectionKey(pattern: RoutePattern) {
+  return getDestinationKey(
+    pattern.displayDirection.trim() ||
+      pattern.direction.trim() ||
+      getLastStopName(pattern)
+  );
+}
+
+function getDirectionDestination(patterns: RoutePattern[]) {
+  const originKeys = new Set(
+    patterns.map((pattern) => getDestinationKey(getFirstStopName(pattern)))
+  );
+
+  // Some feeds split one through-direction into consecutive patterns. An
+  // endpoint that is also another pattern's origin is a transfer point, not a
+  // separate direction (for example, Uptown Core on route 5).
+  for (const pattern of patterns) {
+    const destination = formatDirectionDestination(getLastStopName(pattern));
+    if (destination && !originKeys.has(getDestinationKey(destination))) {
+      return destination;
+    }
+  }
+
+  return formatDirectionDestination(getLastStopName(patterns[0]));
 }
 
 export function formatDirectionDestination(value: string) {
@@ -32,28 +74,29 @@ export function getDestinationKey(value: string) {
 export function getRouteDirections(routeInfo: RouteInfo | null) {
   if (!routeInfo) return [];
 
-  const directions = new Map<string, RouteDirection>();
+  const directionPatterns = new Map<string, RoutePattern[]>();
 
   for (const pattern of routeInfo.patterns) {
-    const destination = formatDirectionDestination(getLastStopName(pattern));
-    const key = getDestinationKey(destination);
+    const key = getDirectionKey(pattern);
     if (!key) continue;
 
-    const existingDirection = directions.get(key);
-    if (existingDirection) {
-      existingDirection.patternIds.push(pattern.id);
-      continue;
-    }
+    const patterns = directionPatterns.get(key) ?? [];
+    patterns.push(pattern);
+    directionPatterns.set(key, patterns);
+  }
 
-    directions.set(key, {
+  return Array.from(directionPatterns, ([key, patterns]) => {
+    const destination =
+      ROUTE_DIRECTION_DESTINATIONS[routeInfo.id]?.[key] ??
+      getDirectionDestination(patterns);
+
+    return {
       key,
       destination,
       label: `To ${destination}`,
-      patternIds: [pattern.id],
-    });
-  }
-
-  return Array.from(directions.values());
+      patternIds: patterns.map((pattern) => pattern.id),
+    };
+  });
 }
 
 export function filterRouteInfoByDirection(
@@ -79,10 +122,12 @@ export function filterBusesByDirection(
   if (!direction) return buses;
 
   const patternIds = new Set(direction.patternIds);
+  const destinationKey = getDestinationKey(direction.destination);
 
   return buses.filter(
     (bus) =>
       patternIds.has(bus.patternId) ||
-      getDestinationKey(bus.destination) === direction.key
+      getDestinationKey(bus.directionDisplay) === direction.key ||
+      getDestinationKey(bus.destination) === destinationKey
   );
 }
