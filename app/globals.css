@@ -148,7 +148,7 @@
   --map-browser-bottom-overscan: 160px;
   --map-mobile-controls-top: 88px;
   --active-buses-drawer-expanded-height: 36vh;
-  --active-buses-drawer-collapsed-height: 112px;
+  --active-buses-drawer-collapsed-height: 136px;
   --active-buses-drawer-height: var(--active-buses-drawer-expanded-height);
 
   background: var(--background);
@@ -232,7 +232,9 @@
   margin-bottom: 0;
 }
 
-.map-viewport[data-bus-drawer-open="false"] .active-buses-drawer-content {
+.map-viewport[data-bus-drawer-open="false"]
+  .active-buses-drawer:not([data-content-revealed="true"])
+  .active-buses-drawer-content {
   opacity: 0;
   pointer-events: none;
   transition-delay: 0ms;
@@ -311,8 +313,8 @@
   width: 20px;
 }
 
-.maplibregl-popup-content {
-  background: var(--popover);
+.maplibregl-map .maplibregl-popup-content {
+  background: var(--popover) !important;
   border: 1px solid var(--border);
   border-radius: 12px;
   color: var(--popover-foreground);
@@ -320,6 +322,18 @@
     0 2px 6px rgb(17 17 17 / 8%),
     0 16px 42px rgb(17 17 17 / 12%);
   padding: 14px 16px;
+}
+
+html.dark .maplibregl-popup-content {
+  background: var(--popover) !important;
+}
+
+.maplibregl-map .maplibregl-popup-anchor-bottom .maplibregl-popup-tip {
+  border-top-color: var(--popover);
+}
+
+.maplibregl-map .maplibregl-popup-anchor-top .maplibregl-popup-tip {
+  border-bottom-color: var(--popover);
 }
 
 .maplibregl-popup-close-button {
@@ -343,6 +357,33 @@
 
 .dark .maplibregl-ctrl-attrib a {
   color: var(--foreground);
+}
+
+.selected-bus-card {
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--bus-route-color) 16%, white),
+    color-mix(in srgb, var(--bus-route-color) 30%, white)
+  );
+  box-shadow:
+    0 1px 2px rgb(17 17 17 / 6%),
+    0 8px 18px -12px color-mix(in srgb, var(--bus-route-color) 65%, transparent),
+    inset 0 -1px 0 color-mix(in srgb, var(--bus-route-color) 28%, transparent);
+  color: #171717;
+}
+
+.dark .selected-bus-card {
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--bus-route-color) 30%, #30302e),
+    color-mix(in srgb, var(--bus-route-color) 42%, #1d1d1b)
+  );
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 28%),
+    0 8px 18px -12px color-mix(in srgb, var(--bus-route-color) 48%, transparent),
+    inset 0 1px 0 rgb(255 255 255 / 12%),
+    inset 0 -1px 0 rgb(0 0 0 / 24%);
+  color: #f7f7f4;
 }
 
 .soft-signal-panel {
