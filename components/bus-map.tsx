@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { BusFront } from "lucide-react";
+import { ArrowRight, BusFront } from "lucide-react";
 import maplibregl, {
   GeoJSONSource,
   LngLatBounds,
@@ -10,6 +10,7 @@ import maplibregl, {
   Marker,
 } from "maplibre-gl";
 import type { FeatureCollection, LineString, Point } from "geojson";
+import type { RouteTermini, RouteTerminus } from "@/lib/route-directions";
 import type { RouteLine } from "@/lib/route-geometry";
 import type { Bus, RouteInfo, BusStop } from "@/lib/types";
 
@@ -41,8 +42,10 @@ const EMPTY_POINT_COLLECTION: FeatureCollection<Point> = {
 interface BusMapProps {
   routeInfo: RouteInfo | null;
   routeLines: RouteLine[];
+  termini: RouteTermini | null;
   buses: Bus[];
   selectedBusId?: string | null;
+  selectedStopId: string | null;
   onStopClick: (stop: BusStop, routeId: string) => void;
 }
 
@@ -73,6 +76,57 @@ function createBusMarkerElement(color: string, label: string) {
     <BusFront className="bus-marker-icon" aria-hidden="true" />
   );
 
+  return marker;
+}
+
+function createTerminusMarkerElement(
+  terminus: RouteTerminus,
+  isDestination: boolean,
+  placement: "left" | "right",
+  routeColor: string
+) {
+  const marker = document.createElement("div");
+  marker.className = [
+    "terminus-label-marker",
+    `terminus-label-marker-${placement}`,
+    isDestination
+      ? "terminus-label-marker-destination"
+      : "terminus-label-marker-origin",
+  ].join(" ");
+  marker.style.setProperty("--terminus-route-color", routeColor);
+  marker.setAttribute(
+    "aria-label",
+    isDestination
+      ? `Current direction: ${terminus.label}`
+      : `Route starts at ${terminus.label}`
+  );
+  marker.setAttribute("role", "note");
+
+  const leader = document.createElement("span");
+  leader.className = "terminus-label-leader";
+  leader.setAttribute("aria-hidden", "true");
+
+  const pill = document.createElement("span");
+  pill.className = isDestination
+    ? "terminus-label-pill terminus-label-pill-destination"
+    : "terminus-label-pill terminus-label-pill-origin";
+
+  const text = document.createElement("span");
+  text.className = "terminus-label-text";
+  text.textContent = terminus.label;
+  pill.append(text);
+
+  if (isDestination) {
+    const arrow = document.createElement("span");
+    arrow.className = "terminus-label-arrow";
+    arrow.setAttribute("aria-hidden", "true");
+    arrow.innerHTML = renderToStaticMarkup(
+      <ArrowRight className="terminus-label-arrow-icon" />
+    );
+    pill.append(arrow);
+  }
+
+  marker.append(leader, pill);
   return marker;
 }
 
@@ -213,8 +267,10 @@ function addMapOverlays(map: MapLibreMap, isDark: boolean) {
 export default function BusMap({
   routeInfo,
   routeLines,
+  termini,
   buses,
   selectedBusId,
+  selectedStopId,
   onStopClick,
 }: BusMapProps) {
   const isDarkTheme = useSyncExternalStore(
@@ -225,6 +281,7 @@ export default function BusMap({
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const busMarkersRef = useRef<Marker[]>([]);
+  const terminusMarkersRef = useRef<Marker[]>([]);
   const onStopClickRef = useRef(onStopClick);
   const routeInfoRef = useRef(routeInfo);
   const updateMapDataRef = useRef<(() => void) | null>(null);
@@ -272,10 +329,6 @@ export default function BusMap({
         const route = routeInfoRef.current;
         const stop = getStops(route).find((item) => item.stop.id === stopId);
         if (stop && route) {
-          new maplibregl.Popup({ offset: 8 })
-            .setLngLat(event.lngLat)
-            .setText(stop.stop.name)
-            .addTo(map);
           onStopClickRef.current(stop.stop, route.id);
         }
       });
@@ -293,6 +346,8 @@ export default function BusMap({
     return () => {
       busMarkersRef.current.forEach((marker) => marker.remove());
       busMarkersRef.current = [];
+      terminusMarkersRef.current.forEach((marker) => marker.remove());
+      terminusMarkersRef.current = [];
       map.remove();
       mapRef.current = null;
       styleUrlRef.current = null;
@@ -370,6 +425,29 @@ export default function BusMap({
       if (map.getLayer(ROUTE_LAYER_ID)) {
         map.setPaintProperty(ROUTE_LAYER_ID, "line-color", routeColor);
       }
+      if (map.getLayer(STOPS_LAYER_ID)) {
+        const stopColor = getIsDarkThemeSnapshot() ? "#222220" : "#ffffff";
+        const selectedId = selectedStopId ?? "";
+
+        map.setPaintProperty(STOPS_LAYER_ID, "circle-color", [
+          "case",
+          ["==", ["get", "id"], selectedId],
+          routeColor,
+          stopColor,
+        ]);
+        map.setPaintProperty(STOPS_LAYER_ID, "circle-radius", [
+          "case",
+          ["==", ["get", "id"], selectedId],
+          7,
+          5,
+        ]);
+        map.setPaintProperty(STOPS_LAYER_ID, "circle-stroke-width", [
+          "case",
+          ["==", ["get", "id"], selectedId],
+          2.5,
+          2,
+        ]);
+      }
       if (map.getLayer(BUS_PULSE_LAYER_ID)) {
         map.setPaintProperty(BUS_PULSE_LAYER_ID, "circle-color", routeColor);
         map.setPaintProperty(
@@ -389,6 +467,48 @@ export default function BusMap({
           .addTo(map)
       );
 
+      terminusMarkersRef.current.forEach((marker) => marker.remove());
+      terminusMarkersRef.current = [];
+
+      if (termini) {
+        const originPlacement =
+          termini.origin.lon <= termini.destination.lon ? "right" : "left";
+        const destinationPlacement =
+          originPlacement === "right" ? "left" : "right";
+
+        const markerConfigs: Array<{
+          terminus: RouteTerminus;
+          destination: boolean;
+          placement: "left" | "right";
+        }> = [
+          {
+            terminus: termini.origin,
+            destination: false,
+            placement: originPlacement,
+          },
+          {
+            terminus: termini.destination,
+            destination: true,
+            placement: destinationPlacement,
+          },
+        ];
+
+        terminusMarkersRef.current = markerConfigs.map(
+          ({ terminus, destination, placement }) =>
+            new maplibregl.Marker({
+              element: createTerminusMarkerElement(
+                terminus,
+                destination,
+                placement,
+                routeColor
+              ),
+              anchor: "center",
+            })
+              .setLngLat([terminus.lon, terminus.lat])
+              .addTo(map)
+        );
+      }
+
       fitBounds(map, routeLines, buses);
     };
 
@@ -397,7 +517,7 @@ export default function BusMap({
     if (styleReadyRef.current) {
       updateMapData();
     }
-  }, [routeInfo, routeLines, stops, buses]);
+  }, [routeInfo, routeLines, termini, stops, buses, selectedStopId]);
 
   useEffect(() => {
     const map = mapRef.current;

@@ -45,13 +45,10 @@ export function StopPredictions({
               {stop.predictions.map((pred, i) => (
                 <div
                   key={`${pred.vehicleId}-${i}`}
-                  className="flex min-h-20 items-center justify-between gap-4 border-b border-border p-4 last:border-b-0"
+                  className="flex min-h-16 items-center justify-between gap-4 border-b border-border p-4 last:border-b-0"
                 >
-                  <div className="space-y-1">
-                    <div className="font-medium">{pred.destination}</div>
-                    <div className="text-xs text-muted-foreground">
-                      Route {pred.routeNumber} · Vehicle #{pred.vehicleId}
-                    </div>
+                  <div className="font-medium">
+                    Vehicle #{pred.vehicleId || "—"}
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge
