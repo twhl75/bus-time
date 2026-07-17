@@ -23,25 +23,10 @@ import {
   filterRouteInfoByDirection,
   getRouteDirections,
 } from "@/lib/route-directions";
+import { getRouteGeometry } from "@/lib/route-geometry";
 import type { Bus, RouteInfo, StopInfo, BusStop } from "@/lib/types";
 
 const BusMap = dynamic(() => import("@/components/bus-map"), { ssr: false });
-
-function getCurrentDirectionLabel(buses: Bus[]) {
-  const directionCounts = new Map<string, number>();
-
-  for (const bus of buses) {
-    const direction = bus.direction.trim();
-    if (!direction) continue;
-
-    directionCounts.set(direction, (directionCounts.get(direction) ?? 0) + 1);
-  }
-
-  return (
-    Array.from(directionCounts.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] ??
-    null
-  );
-}
 
 export default function Home() {
   const viewportRef = useRef<HTMLElement | null>(null);
@@ -69,14 +54,15 @@ export default function Home() {
     () => filterRouteInfoByDirection(routeInfo, activeDirection),
     [routeInfo, activeDirection]
   );
+  const visibleRouteLines = useMemo(
+    () => getRouteGeometry(routeInfo, activeDirection),
+    [routeInfo, activeDirection]
+  );
   const visibleBuses = useMemo(
     () => filterBusesByDirection(buses, activeDirection),
     [buses, activeDirection]
   );
-  const currentDirectionLabel = useMemo(
-    () => getCurrentDirectionLabel(visibleBuses) ?? activeDirection?.label,
-    [visibleBuses, activeDirection]
-  );
+  const currentDirectionLabel = activeDirection?.label;
 
   const fetchBuses = useCallback(async (route: string) => {
     const res = await fetch(`/api/buses?route=${route}`);
@@ -174,6 +160,7 @@ export default function Home() {
       <div className="map-canvas-layer">
         <BusMap
           routeInfo={visibleRouteInfo}
+          routeLines={visibleRouteLines}
           buses={visibleBuses}
           onStopClick={handleStopClick}
         />
